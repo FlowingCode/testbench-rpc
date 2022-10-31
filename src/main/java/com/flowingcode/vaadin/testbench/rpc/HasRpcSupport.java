@@ -24,6 +24,7 @@ import com.vaadin.testbench.HasDriver;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -107,6 +108,10 @@ public interface HasRpcSupport extends HasDriver {
 
                 if (returnType.isInstance(result)) {
                   return result;
+                }
+
+                if (returnType == Integer.class && result.getClass() == Long.class) {
+                  return BigInteger.valueOf((Long) result).intValueExact();
                 }
 
                 throw new ClassCastException(
