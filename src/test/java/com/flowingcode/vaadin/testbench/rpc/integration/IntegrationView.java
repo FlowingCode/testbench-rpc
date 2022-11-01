@@ -17,11 +17,12 @@
  * limitations under the License.
  * #L%
  */
-package com.flowingcode.vaadin.testbench.rpc;
+package com.flowingcode.vaadin.testbench.rpc.integration;
 
-import static com.flowingcode.vaadin.testbench.rpc.IntegrationViewConstants.HELLO;
-import static com.flowingcode.vaadin.testbench.rpc.IntegrationViewConstants.HELLO_WORLD;
-import static com.flowingcode.vaadin.testbench.rpc.IntegrationViewConstants.WORLD;
+import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.HELLO;
+import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.HELLO_WORLD;
+import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.WORLD;
+import com.flowingcode.vaadin.testbench.rpc.JsonArrayList;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.Route;

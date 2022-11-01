@@ -17,24 +17,14 @@
  * limitations under the License.
  * #L%
  */
-package com.flowingcode.vaadin.testbench.rpc;
+package com.flowingcode.vaadin.testbench.rpc.integration;
 
-public interface IntegrationViewCallables {
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
 
-  void testCallableFailure();
+@Route(NoCallablesView1.ROUTE)
+public class NoCallablesView1 extends Div {
 
-  void testCallableSuccess();
-
-  boolean negate(boolean arg);
-
-  String concatWorld(String arg);
-
-  boolean returnTrue();
-
-  int return42();
-
-  String returnHelloWorld();
-
-  JsonArrayList<String> returnHelloAndWorld();
+  public static final String ROUTE = "it/nocallables1";
 
 }

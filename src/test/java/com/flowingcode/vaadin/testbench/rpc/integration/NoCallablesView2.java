@@ -17,14 +17,26 @@
  * limitations under the License.
  * #L%
  */
-package com.flowingcode.vaadin.testbench.rpc;
+package com.flowingcode.vaadin.testbench.rpc.integration;
 
+import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.Route;
 
-@Route(NoCallablesView1.ROUTE)
-public class NoCallablesView1 extends Div {
+@Route(NoCallablesView2.ROUTE)
+public class NoCallablesView2 extends Div {
 
-  public static final String ROUTE = "it/nocallables1";
+  public static final String ROUTE = "it/nocallables2";
+
+  @ClientCallable
+  private void return42() {
+    // this method returns void instead of int
+  }
+
+  @ClientCallable
+  private int returnHelloWorld() {
+    // this method returns int instead of String
+    return 42;
+  }
 
 }

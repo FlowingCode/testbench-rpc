@@ -17,14 +17,26 @@
  * limitations under the License.
  * #L%
  */
-package com.flowingcode.vaadin.testbench.rpc;
+package com.flowingcode.vaadin.testbench.rpc.integration;
 
-public interface IntegrationViewConstants {
+import com.flowingcode.vaadin.testbench.rpc.JsonArrayList;
 
-  static final String HELLO = "Hello";
+public interface IntegrationViewCallables {
 
-  static final String WORLD = "World";
+  void testCallableFailure();
 
-  static final String HELLO_WORLD = HELLO + WORLD;
+  void testCallableSuccess();
+
+  boolean negate(boolean arg);
+
+  String concatWorld(String arg);
+
+  boolean returnTrue();
+
+  int return42();
+
+  String returnHelloWorld();
+
+  JsonArrayList<String> returnHelloAndWorld();
 
 }

@@ -17,13 +17,16 @@
  * limitations under the License.
  * #L%
  */
-package com.flowingcode.vaadin.testbench.rpc;
+package com.flowingcode.vaadin.testbench.rpc.integration;
 
-import static com.flowingcode.vaadin.testbench.rpc.IntegrationViewConstants.HELLO;
-import static com.flowingcode.vaadin.testbench.rpc.IntegrationViewConstants.HELLO_WORLD;
-import static com.flowingcode.vaadin.testbench.rpc.IntegrationViewConstants.WORLD;
+import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.HELLO;
+import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.HELLO_WORLD;
+import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.WORLD;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertThrows;
+import com.flowingcode.vaadin.testbench.rpc.AbstractViewTest;
+import com.flowingcode.vaadin.testbench.rpc.HasRpcSupport;
+import com.flowingcode.vaadin.testbench.rpc.RpcException;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.FixMethodOrder;

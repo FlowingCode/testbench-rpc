@@ -17,26 +17,14 @@
  * limitations under the License.
  * #L%
  */
-package com.flowingcode.vaadin.testbench.rpc;
+package com.flowingcode.vaadin.testbench.rpc.integration;
 
-import com.vaadin.flow.component.ClientCallable;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.router.Route;
+public interface IntegrationViewConstants {
 
-@Route(NoCallablesView2.ROUTE)
-public class NoCallablesView2 extends Div {
+  static final String HELLO = "Hello";
 
-  public static final String ROUTE = "it/nocallables2";
+  static final String WORLD = "World";
 
-  @ClientCallable
-  private void return42() {
-    // this method returns void instead of int
-  }
-
-  @ClientCallable
-  private int returnHelloWorld() {
-    // this method returns int instead of String
-    return 42;
-  }
+  static final String HELLO_WORLD = HELLO + WORLD;
 
 }

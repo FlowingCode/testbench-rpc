@@ -17,10 +17,13 @@
  * limitations under the License.
  * #L%
  */
-package com.flowingcode.vaadin.testbench.rpc;
+package com.flowingcode.vaadin.testbench.rpc.integration;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import com.flowingcode.vaadin.testbench.rpc.AbstractViewTest;
+import com.flowingcode.vaadin.testbench.rpc.HasRpcSupport;
+import com.flowingcode.vaadin.testbench.rpc.RpcException;
 import io.vavr.control.Try;
 import org.junit.Test;
 
