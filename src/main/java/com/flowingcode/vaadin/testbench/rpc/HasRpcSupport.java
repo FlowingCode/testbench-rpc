@@ -29,13 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.ClassUtils;
-import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 /** @author Javier Godoy / Flowing Code */
 public interface HasRpcSupport extends HasDriver {
@@ -51,29 +47,31 @@ public interface HasRpcSupport extends HasDriver {
    * @throws RuntimeException if the callable fails.
    */
   default Object call(String callable, Object... arguments) {
-    WebElement view = getDriver().findElement(By.id("view"));
     arguments = Optional.ofNullable(arguments).orElse(new Object[0]);
 
     StringBuilder script = new StringBuilder();
-    script.append("var view = arguments[0];");
-    script.append("var callable = arguments[1];");
-    script.append("var callback = (result,success) => arguments[3]({result, success});");
-    script.append("view.$server[callable](...arguments[2])");
-    script.append(" .then(result=>callback(result, true))");
-    script.append(" .catch(()=>callback(undefined, false));");
+
+    // view is the (first) children of <body> that has a $server
+    script.append("var callback = arguments[2];");
+    script.append("var view = [].slice.call(document.body.children).find(e=>e.$server);");
+    script.append(
+        "if (!view) return callback({message:'Could not find view. Check that the view contains @ClientCallable methods'}), 0;");
+
+    script.append("var callable = view.$server[arguments[0]];");
+    script.append(
+        "if (!callable) return callback({message:'Method is not published. Check that the method exists and it is annotated with @ClientCallable'}), 0;");
+    script.append("callable.call(view.$server, ...arguments[1])");
+    script.append(" .then(result=>callback({result}))");
+    script.append(" .catch(e=>callback({message : e.message || ''}));");
 
     @SuppressWarnings("unchecked")
     Map<String, Object> result =
         (Map<String, Object>)
             ((JavascriptExecutor) getDriver())
-                .executeAsyncScript(script.toString(), view, callable, arguments);
+            .executeAsyncScript(script.toString(), callable, arguments);
 
-    if (!(Boolean) result.get("success")) {
-      throw new RuntimeException(
-          String.format(
-              "server call failed: %s(%s)",
-              callable,
-              Stream.of(arguments).map(Object::toString).collect(Collectors.joining(","))));
+    if (!result.containsKey("result")) {
+      throw new RpcException(callable, arguments, (String) result.get("message"));
     }
 
     return result.get("result");
@@ -91,32 +89,48 @@ public interface HasRpcSupport extends HasDriver {
             new InvocationHandler() {
               @Override
               public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                Object result = call(method.getName(), args);
+                try {
+                  Object result = call(method.getName(), args);
 
-                Class<?> returnType = method.getReturnType();
-                if (result == null || returnType == Void.TYPE) {
-                  return null;
+                  Class<?> returnType = method.getReturnType();
+
+                  if (returnType == Void.TYPE) {
+                    return null;
+                  }
+
+                  if (returnType.isPrimitive()) {
+                    if (result == null) {
+                      throw new ClassCastException("Cannot cast null as " + returnType);
+                    }
+                    returnType = ClassUtils.primitiveToWrapper(method.getReturnType());
+                  }
+
+                  if (result == null) {
+                    return null;
+                  }
+
+                  if (returnType == JsonArrayList.class) {
+                    return JsonArrayList.wrapForTestbench((List<?>) result);
+                  }
+
+                  if (returnType.isInstance(result)) {
+                    return result;
+                  }
+
+                  if (returnType == Integer.class && result.getClass() == Long.class) {
+                    return BigInteger.valueOf((Long) result).intValueExact();
+                  }
+
+                  throw new ClassCastException(
+                      String.format(
+                          "Cannot cast %s as %s",
+                          result.getClass().getName(),
+                          method.getReturnType().getName()));
+                } catch (RpcException e) {
+                  throw e;
+                } catch (Exception e) {
+                  throw new RpcException(method.getName(), args, e);
                 }
-
-                if (returnType == JsonArrayList.class) {
-                  return JsonArrayList.wrapForTestbench((List<?>) result);
-                }
-
-                if (returnType.isPrimitive()) {
-                  returnType = ClassUtils.primitiveToWrapper(method.getReturnType());
-                }
-
-                if (returnType.isInstance(result)) {
-                  return result;
-                }
-
-                if (returnType == Integer.class && result.getClass() == Long.class) {
-                  return BigInteger.valueOf((Long) result).intValueExact();
-                }
-
-                throw new ClassCastException(
-                    String.format(
-                        "%s as %s", result.getClass().getName(), method.getReturnType().getName()));
               }
             }));
   }

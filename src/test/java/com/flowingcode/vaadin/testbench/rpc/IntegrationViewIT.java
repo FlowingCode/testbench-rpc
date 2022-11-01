@@ -49,7 +49,7 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   @Test
   public void test02_CallableFailure() {
     // test that the callable mechanism detect failures
-    assertThrows(RuntimeException.class, () -> $server.testCallableFailure());
+    assertThrows(RpcException.class, () -> $server.testCallableFailure());
   }
 
   @Test
