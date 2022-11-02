@@ -348,7 +348,26 @@
                 </plugins>
             </build>
         </profile>
-        
+
+        <profile>
+            <id>demo</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-failsafe-plugin</artifactId>
+                            <configuration>
+                                <excludes>
+                                    <exclude>**/integration/**</exclude>
+                                </excludes>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+                
     </profiles>
 </project>
 
