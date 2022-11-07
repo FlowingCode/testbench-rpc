@@ -37,7 +37,7 @@ public class RpcException extends RuntimeException {
     return String.format(
         "%s(%s) RPC call failed%s",
         method,
-        Optional.ofNullable(arguments).map(Stream::of).orElse(Stream.empty()).map(Object::toString)
+        Optional.ofNullable(arguments).map(Stream::of).orElse(Stream.empty()).map(String::valueOf)
             .collect(Collectors.joining(",")),
         Optional.ofNullable(message).map(": "::concat).orElse(""));
   }
