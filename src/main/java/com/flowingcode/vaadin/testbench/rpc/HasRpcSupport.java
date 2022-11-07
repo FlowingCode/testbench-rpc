@@ -53,7 +53,10 @@ public interface HasRpcSupport extends HasDriver {
 
     // view is the (first) children of <body> that has a $server
     script.append("var callback = arguments[2];");
-    script.append("var view = [].slice.call(document.body.children).find(e=>e.$server);");
+    script.append("var view = [].slice.call(document.body.children)"); // V14
+    script.append("   .concat([].slice.call(document.querySelectorAll('body > #outlet > * > *')))"); // V22+
+    script.append("   .find(e=>e.$server);");
+
     script.append(
         "if (!view) return callback({message:'Could not find view. Check that the view contains @ClientCallable methods'}), 0;");
 
