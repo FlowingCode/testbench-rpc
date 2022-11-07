@@ -48,7 +48,11 @@ public interface HasRpcSupport extends HasDriver {
    */
   default Object call(String callable, Object... arguments) {
     arguments = Optional.ofNullable(arguments).orElse(new Object[0]);
-
+    for (int i = 0; i < arguments.length; i++) {
+      if (arguments[i] instanceof Enum) {
+        arguments[i] = ((Enum<?>) arguments[i]).name();
+      }
+    }
     StringBuilder script = new StringBuilder();
 
     // view is the (first) children of <body> that has a $server

@@ -83,6 +83,12 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
 
   @Override
   @ClientCallable
+  public boolean testFooEnum(TestEnum e) {
+    return e == TestEnum.FOO;
+  }
+
+  @Override
+  @ClientCallable
   public JsonArrayList<String> returnHelloAndWorld() {
     return JsonArrayList.createArray(Arrays.asList(HELLO, WORLD), Json::create);
   }

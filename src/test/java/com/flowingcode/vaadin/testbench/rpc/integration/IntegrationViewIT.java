@@ -24,9 +24,11 @@ import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewCo
 import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.WORLD;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import com.flowingcode.vaadin.testbench.rpc.AbstractViewTest;
 import com.flowingcode.vaadin.testbench.rpc.HasRpcSupport;
 import com.flowingcode.vaadin.testbench.rpc.RpcException;
+import com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewCallables.TestEnum;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.FixMethodOrder;
@@ -65,6 +67,7 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
     assertThat($server.return42(), Matchers.equalTo(42));
   }
 
+  @Test
   public void test05_ReturnString() {
     assertThat($server.returnHelloWorld(), Matchers.equalTo(HELLO_WORLD));
   }
@@ -82,7 +85,12 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   }
 
   @Test
-  public void test08_CallableArray() {
+  public void test08_CallableEnum() {
+    assertTrue($server.testFooEnum(TestEnum.FOO));
+  }
+
+  @Test
+  public void test09_CallableArray() {
     List<String> list = $server.returnHelloAndWorld().asList();
     assertThat(list, Matchers.hasSize(2));
     assertThat(list.get(0), Matchers.equalTo(HELLO));
