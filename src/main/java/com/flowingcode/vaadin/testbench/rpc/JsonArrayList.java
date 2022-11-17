@@ -42,15 +42,33 @@ public interface JsonArrayList<T> extends JsonValue, Collection<T> {
 
   List<T> asList();
 
+  @Deprecated
+  /** @deprecated. Use {@link #fromStrings(Iterable)} */
   public static JsonArrayList<String> fromStringArray(List<String> list) {
-    return createArray(list, Json::create);
+    return fromStrings(list);
   }
 
+  @Deprecated
+  /** @deprecated. Use {@link #fromBooleans(Iterable)} */
   public static JsonArrayList<Boolean> fromBooleanArray(List<Boolean> list) {
+    return fromBooleans(list);
+  }
+
+  @Deprecated
+  /** @deprecated. Use {@link #fromDoubles(Iterable)} */
+  public static JsonArrayList<Double> fromDoubleArray(List<Double> list) {
+    return fromDoubles(list);
+  }
+
+  public static JsonArrayList<String> fromStrings(List<String> list) {
     return createArray(list, Json::create);
   }
 
-  public static JsonArrayList<Double> fromDoubleArray(List<Double> list) {
+  public static JsonArrayList<Boolean> fromBooleans(List<Boolean> list) {
+    return createArray(list, Json::create);
+  }
+
+  public static JsonArrayList<Double> fromDoubles(List<Double> list) {
     return createArray(list, Json::create);
   }
 
