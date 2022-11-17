@@ -37,13 +37,21 @@ public interface IntegrationViewCallables {
 
   String returnHelloWorld();
 
-  JsonArrayList<String> returnHelloAndWorld();
-
   boolean testFooEnum(TestEnum e);
 
   enum TestEnum {
     FOO, BAR
   }
 
+
+  JsonArrayList<Double> getDoubles();
+
+  JsonArrayList<Boolean> getBooleans();
+
+  JsonArrayList<String> getStrings();
+
+  JsonArrayList<Integer> getIntegers();
+
+  JsonArrayList<Long> getLongs();
 
 }

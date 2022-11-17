@@ -90,11 +90,43 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   }
 
   @Test
-  public void test09_CallableArray() {
-    List<String> list = $server.returnHelloAndWorld().asList();
+  public void test09_CallableArrayString() {
+    List<String> list = $server.getStrings().asList();
     assertThat(list, Matchers.hasSize(2));
     assertThat(list.get(0), Matchers.equalTo(HELLO));
     assertThat(list.get(1), Matchers.equalTo(WORLD));
+  }
+
+  @Test
+  public void test09_CallableArrayBoolean() {
+    List<Boolean> list = $server.getBooleans().asList();
+    assertThat(list, Matchers.hasSize(2));
+    assertThat(list.get(0), Matchers.equalTo(false));
+    assertThat(list.get(1), Matchers.equalTo(true));
+  }
+
+  @Test
+  public void test09_CallableArrayDouble() {
+    List<Double> list = $server.getDoubles().asList();
+    assertThat(list, Matchers.hasSize(2));
+    assertThat(list.get(0), Matchers.equalTo(1.1d));
+    assertThat(list.get(1), Matchers.equalTo(2.2d));
+  }
+
+  @Test
+  public void test09_CallableArrayInteger() {
+    List<Integer> list = $server.getIntegers().asList();
+    assertThat(list, Matchers.hasSize(2));
+    assertThat(list.get(0), Matchers.equalTo(1));
+    assertThat(list.get(1), Matchers.equalTo(2));
+  }
+
+  @Test
+  public void test09_CallableArrayLong() {
+    List<Long> list = $server.getLongs().asList();
+    assertThat(list, Matchers.hasSize(2));
+    assertThat(list.get(0), Matchers.equalTo(1L));
+    assertThat(list.get(1), Matchers.equalTo(2L));
   }
 
 }

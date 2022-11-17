@@ -26,7 +26,6 @@ import com.flowingcode.vaadin.testbench.rpc.JsonArrayList;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.Route;
-import elemental.json.Json;
 import java.util.Arrays;
 
 @SuppressWarnings("serial")
@@ -89,8 +88,32 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
 
   @Override
   @ClientCallable
-  public JsonArrayList<String> returnHelloAndWorld() {
-    return JsonArrayList.createArray(Arrays.asList(HELLO, WORLD), Json::create);
+  public JsonArrayList<Double> getDoubles() {
+    return JsonArrayList.fromDoubles(Arrays.asList(1.1d, 2.2d));
+  }
+
+  @Override
+  @ClientCallable
+  public JsonArrayList<Boolean> getBooleans() {
+    return JsonArrayList.fromBooleans(Arrays.asList(false, true));
+  }
+
+  @Override
+  @ClientCallable
+  public JsonArrayList<String> getStrings() {
+    return JsonArrayList.fromStrings(Arrays.asList(HELLO, WORLD));
+  }
+
+  @Override
+  @ClientCallable
+  public JsonArrayList<Integer> getIntegers() {
+    return JsonArrayList.fromIntegers(Arrays.asList(1, 2));
+  }
+
+  @Override
+  @ClientCallable
+  public JsonArrayList<Long> getLongs() {
+    return JsonArrayList.fromLongs(Arrays.asList(1L, 2L));
   }
 
 }
