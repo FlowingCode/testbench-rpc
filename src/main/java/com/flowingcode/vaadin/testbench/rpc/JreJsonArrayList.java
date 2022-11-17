@@ -54,7 +54,7 @@ class JreJsonArrayList<T> extends JreJsonArray implements JsonArrayList<T> {
         }
       };
 
-  public JreJsonArrayList(List<T> list, Function<? super T, JsonValue> mapper) {
+  public JreJsonArrayList(Iterable<T> list, Function<? super T, JsonValue> mapper) {
     super(Json.instance());
     for (T t : list) {
       set(length(), Optional.ofNullable(t).map(mapper).orElseGet(Json::createNull));
