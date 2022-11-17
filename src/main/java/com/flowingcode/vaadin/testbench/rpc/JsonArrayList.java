@@ -60,21 +60,21 @@ public interface JsonArrayList<T> extends JsonValue, Collection<T> {
     return fromDoubles(list);
   }
 
-  public static JsonArrayList<String> fromStrings(List<String> list) {
+  public static JsonArrayList<String> fromStrings(Iterable<String> list) {
     return createArray(list, Json::create);
   }
 
-  public static JsonArrayList<Boolean> fromBooleans(List<Boolean> list) {
+  public static JsonArrayList<Boolean> fromBooleans(Iterable<Boolean> list) {
     return createArray(list, Json::create);
   }
 
-  public static JsonArrayList<Double> fromDoubles(List<Double> list) {
+  public static JsonArrayList<Double> fromDoubles(Iterable<Double> list) {
     return createArray(list, Json::create);
   }
 
   /** @deprecated. This method should be private. */
   public static <T> JsonArrayList<T> createArray(
-      List<T> list, Function<? super T, JsonValue> mapper) {
+      Iterable<T> list, Function<? super T, JsonValue> mapper) {
     return new JreJsonArrayList<>(list, mapper);
   }
 
