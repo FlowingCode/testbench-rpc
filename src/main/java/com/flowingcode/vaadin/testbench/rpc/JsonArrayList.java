@@ -19,6 +19,7 @@
  */
 package com.flowingcode.vaadin.testbench.rpc;
 
+import com.google.common.base.Functions;
 import elemental.json.Json;
 import elemental.json.JsonValue;
 import java.util.Collection;
@@ -70,6 +71,14 @@ public interface JsonArrayList<T> extends JsonValue, Collection<T> {
 
   public static JsonArrayList<Double> fromDoubles(Iterable<Double> list) {
     return createArray(list, Json::create);
+  }
+
+  public static JsonArrayList<Integer> fromIntegers(Iterable<Integer> list) {
+    return createArray(list, Functions.compose(Json::create, Integer::doubleValue));
+  }
+
+  public static JsonArrayList<Long> fromLongs(Iterable<Long> list) {
+    return createArray(list, Functions.compose(Json::create, Long::doubleValue));
   }
 
   /** @deprecated. This method should be private. */
