@@ -81,6 +81,7 @@ public interface JsonArrayList<T> extends JsonValue, Collection<T> {
     return createArray(list, Functions.compose(Json::create, Long::doubleValue));
   }
 
+  @Deprecated
   /** @deprecated. This method should be private. */
   public static <T> JsonArrayList<T> createArray(
       Iterable<T> list, Function<? super T, JsonValue> mapper) {
