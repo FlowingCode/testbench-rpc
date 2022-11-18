@@ -23,17 +23,12 @@ import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.testbench.HasDriver;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.Type;
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.reflect.TypeUtils;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
@@ -117,48 +112,16 @@ public interface HasRpcSupport extends HasDriver {
                   }
 
                   if (returnType == JsonArrayList.class) {
-                    return castList((List<?>) result, method.getGenericReturnType());
+                    return TypeConversion.castList((List<?>) result, method.getGenericReturnType());
                   }
 
-                  return cast(result, returnType);
+                  return TypeConversion.cast(result, returnType);
 
                 } catch (RpcException e) {
                   throw e;
                 } catch (Exception e) {
                   throw new RpcException(method.getName(), args, e);
                 }
-              }
-
-              private Object cast(Object result, Class<?> returnType) {
-
-                if (result == null) {
-                  return null;
-                }
-
-                if (returnType.isInstance(result)) {
-                  return result;
-                }
-
-                if (returnType == Integer.class && result.getClass() == Long.class) {
-                  return BigInteger.valueOf((Long) result).intValueExact();
-                }
-
-                if (returnType == Double.class && result.getClass() == Long.class) {
-                  return ((Long) result).doubleValue();
-                }
-
-                throw new ClassCastException(String.format("Cannot cast %s as %s",
-                    result.getClass().getName(), returnType.getName()));
-              }
-
-              private JsonArrayList<?> castList(List<?> result, Type returnType) {
-                if (returnType instanceof ParameterizedType) {
-                  Type arg = ((ParameterizedType) returnType).getActualTypeArguments()[0];
-                  Class<?> elementType = TypeUtils.getRawType(arg, null);
-                  result = ((List<?>) result).stream().map(e -> cast(e, elementType))
-                      .collect(Collectors.toList());
-                }
-                return JsonArrayList.wrapForTestbench(result);
               }
 
             }));
