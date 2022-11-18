@@ -143,6 +143,10 @@ public interface HasRpcSupport extends HasDriver {
                   return BigInteger.valueOf((Long) result).intValueExact();
                 }
 
+                if (returnType == Double.class && result.getClass() == Long.class) {
+                  return ((Long) result).doubleValue();
+                }
+
                 throw new ClassCastException(String.format("Cannot cast %s as %s",
                     result.getClass().getName(), returnType.getName()));
               }

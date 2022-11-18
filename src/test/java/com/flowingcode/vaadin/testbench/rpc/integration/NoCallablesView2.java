@@ -29,7 +29,7 @@ public class NoCallablesView2 extends Div {
   public static final String ROUTE = "it/nocallables2";
 
   @ClientCallable
-  private void return42() {
+  private void returnIntegerPrimitive() {
     // this method returns void instead of int
   }
 

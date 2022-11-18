@@ -70,8 +70,26 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
 
   @Override
   @ClientCallable
-  public int return42() {
+  public int return42IntegerPrimitive() {
     return 42;
+  }
+
+  @Override
+  @ClientCallable
+  public double return42DoublePrimitive() {
+    return 42d;
+  }
+
+  @Override
+  @ClientCallable
+  public Integer return42Integer() {
+    return 42;
+  }
+
+  @Override
+  @ClientCallable
+  public Double return42Double() {
+    return 42d;
   }
 
   @Override

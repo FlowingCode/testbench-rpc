@@ -58,13 +58,28 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   }
 
   @Test
-  public void test03_ReturnBoolean() {
+  public void test03_ReturnBooleanPrimitive() {
     assertThat($server.returnTrue(), Matchers.equalTo(true));
   }
 
   @Test
-  public void test04_ReturnInt() {
-    assertThat($server.return42(), Matchers.equalTo(42));
+  public void test04_ReturnIntegerPrimitive() {
+    assertThat($server.return42IntegerPrimitive(), Matchers.equalTo(42));
+  }
+
+  @Test
+  public void test04_ReturnDoublePrimitive() {
+    assertThat($server.return42DoublePrimitive(), Matchers.equalTo(42.0));
+  }
+
+  @Test
+  public void test04_ReturnInteger() {
+    assertThat($server.return42Integer(), Matchers.equalTo(42));
+  }
+
+  @Test
+  public void test04_ReturnDouble() {
+    assertThat($server.return42Double(), Matchers.equalTo(42.0));
   }
 
   @Test

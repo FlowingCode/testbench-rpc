@@ -54,7 +54,7 @@ public class NoCallables2IT extends AbstractViewTest implements HasRpcSupport {
     String expectedMessage = "return42() RPC call failed: Cannot cast null as int";
 
     assertThrows(RpcException.class,
-        Try.run($server::return42)
+        Try.run($server::return42IntegerPrimitive)
         .onFailure(t -> actualMessage[0] = t.getMessage())::get);
     assertEquals(expectedMessage, actualMessage[0]);
   }
