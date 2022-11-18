@@ -105,7 +105,7 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   }
 
   @Test
-  public void test09_CallableArrayString() {
+  public void test09_CallableListString() {
     List<String> list = $server.getStrings().asList();
     assertThat(list, Matchers.hasSize(2));
     assertThat(list.get(0), Matchers.equalTo(HELLO));
@@ -113,7 +113,7 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   }
 
   @Test
-  public void test09_CallableArrayBoolean() {
+  public void test09_CallableListBoolean() {
     List<Boolean> list = $server.getBooleans().asList();
     assertThat(list, Matchers.hasSize(2));
     assertThat(list.get(0), Matchers.equalTo(false));
@@ -121,7 +121,7 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   }
 
   @Test
-  public void test09_CallableArrayDouble() {
+  public void test09_CallableListDouble() {
     List<Double> list = $server.getDoubles().asList();
     assertThat(list, Matchers.hasSize(2));
     assertThat(list.get(0), Matchers.equalTo(1.1d));
@@ -129,7 +129,7 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   }
 
   @Test
-  public void test09_CallableArrayInteger() {
+  public void test09_CallableListInteger() {
     List<Integer> list = $server.getIntegers().asList();
     assertThat(list, Matchers.hasSize(2));
     assertThat(list.get(0), Matchers.equalTo(1));
@@ -137,7 +137,7 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   }
 
   @Test
-  public void test09_CallableArrayLong() {
+  public void test09_CallableListLong() {
     List<Long> list = $server.getLongs().asList();
     assertThat(list, Matchers.hasSize(2));
     assertThat(list.get(0), Matchers.equalTo(1L));
