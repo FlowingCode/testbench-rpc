@@ -2,6 +2,11 @@
 
 This library provides support for [calling Server-Side methods](https://vaadin.com/docs/latest/create-ui/element-api/client-server-rpc/#calling-server-side-methods-from-the-client) from [Vaadin TestBench](https://vaadin.com/docs/latest/testing/end-to-end) integration tests.
 
+The main purpose of this library is to facilitate using Vaadin TestBench for testing addons. 
+The structure of tests written for addons differs from the structure of integration tests written for applications (where there is a clear sequence of actions that the user follows, and the result is observable in the UI).
+In the case of addons, the test usually requires to configure the component in some way (by calling server-side setters), then execute an action in the browser, and finally assert that the action has modified the server-side state.
+In addition, the views used for testing addons are not part of the addon itself (while applications are usually tested by using the same views that comprise the application), thus developers have more leeway in the implementation.
+
 ## Supported versions
 
 Version 1.x of this library is compatible with Vaadin 14-23.
