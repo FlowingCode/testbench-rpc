@@ -117,3 +117,29 @@ public class SampleIT extends AbstractViewTest implements HasRpcSupport {
   
 }
 ```
+
+### Return types
+
+Types `boolean`, `int`, `double`, their boxed types (`Boolean`, `Integer` and `Double`), `String` and `JsonValue` are supported as both argument and return types in `@ClientCallable` methods. 
+Enumeration types are supported as arguments, but not as return types.
+
+**Returning Lists** The return type of a `@ClientCallable` method can be declared as `JsonArrayList<T>` (where the element type `T` is a supported return type, or `Long`).
+In TestBench side, the `JsonArrayList` will implement `Collection<T>`, which facilitates asserting its value (for instance, with hamcrest matchers).
+
+```
+  @Override
+  @ClientCallable
+  public JsonArrayList<Integer> getIntegers() {
+    return JsonArrayList.fromIntegers(Arrays.asList(1, 2));
+  }
+```
+
+```
+  @Test
+  public void testListInteger() {
+    List<Integer> list = $server.getIntegers().asList();
+    assertThat(list, Matchers.hasSize(2));
+    assertThat(list.get(0), Matchers.equalTo(1));
+    assertThat(list.get(1), Matchers.equalTo(2));
+  }
+```
