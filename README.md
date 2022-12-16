@@ -9,7 +9,7 @@ In addition, the views used for testing addons are not part of the addon itself 
 
 ## Supported versions
 
-Version 1.x of this library is compatible with Vaadin 14-23.
+Version 1.x of this library is compatible with Vaadin 14-24.
 
 
 ## Maven dependency
