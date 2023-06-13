@@ -23,6 +23,7 @@ import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.testbench.HasDriver;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,15 @@ public interface HasRpcSupport extends HasDriver {
    * #call}.
    */
   default <T> T createCallableProxy(Class<T> intf) {
+    if (!intf.isInterface()) {
+      throw new IllegalArgumentException(intf.getName() + " is not an interface");
+    }
+    for (Method method : intf.getMethods()) {
+      if (!Modifier.isStatic(method.getModifiers())) {
+        TypeConversion.checkMethod(method);
+      }
+    }
+
     return intf.cast(
         Proxy.newProxyInstance(
             intf.getClassLoader(),
