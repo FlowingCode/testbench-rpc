@@ -9,7 +9,7 @@
     <description>RPC for Vaadin TestBench</description>
 
     <properties>
-        <vaadin.version>14.8.11</vaadin.version>
+        <vaadin.version>14.10.1</vaadin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-testbench-core</artifactId>
-            <version>6.4.0</version>             
+            <version>6.5.1</version>             
             <scope>compile</scope>
         </dependency>
         
