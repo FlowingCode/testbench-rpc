@@ -118,7 +118,7 @@ public class SampleIT extends AbstractViewTest implements HasRpcSupport {
 }
 ```
 
-### Return types
+### Argument and return types
 
 Types `boolean`, `int`, `double`, their boxed types (`Boolean`, `Integer` and `Double`), `String` and `JsonValue` are supported as both argument and return types in `@ClientCallable` methods. 
 Enumeration types are supported as arguments, but not as return types.
