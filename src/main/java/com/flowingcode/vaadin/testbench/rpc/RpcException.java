@@ -25,6 +25,10 @@ import java.util.stream.Stream;
 
 public class RpcException extends RuntimeException {
 
+  protected RpcException(String message) {
+    super(message);
+  }
+
   public RpcException(String method, Object[] arguments, String message) {
     super(makeMessage(method, arguments, message));
   }
