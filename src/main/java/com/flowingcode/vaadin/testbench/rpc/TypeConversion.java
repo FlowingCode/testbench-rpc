@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
@@ -67,6 +68,28 @@ class TypeConversion {
     }
     throw new ClassCastException(String.format("Cannot cast %s as %s",
         arg.getClass().getName(), JsonValue.class));
+  }
+
+  static Object fromJsonValue(JsonValue arg) {
+    switch (arg.getType()) {
+      case BOOLEAN:
+        return arg.asBoolean();
+      case NUMBER:
+        return arg.asNumber();
+      case STRING:
+        return arg.asString();
+      case NULL:
+        return null;
+      case ARRAY:
+        JsonArray array = (JsonArray) arg;
+        List<Object> list = new ArrayList<>(array.length());
+        for (int i = 0; i < array.length(); i++) {
+          list.add(fromJsonValue(array.get(i)));
+        }
+        return list;
+      default:
+        return arg;
+    }
   }
 
   static JsonArrayList<?> castList(List<?> value, Type returnType) {

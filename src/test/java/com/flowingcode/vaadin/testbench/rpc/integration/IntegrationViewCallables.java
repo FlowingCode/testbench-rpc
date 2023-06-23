@@ -67,6 +67,8 @@ public interface IntegrationViewCallables {
 
   JsonValue returnJsonValueNullArray();
 
+  String testJsonValue(JsonValue value);
+
   enum TestEnum {
     FOO, BAR
   }
