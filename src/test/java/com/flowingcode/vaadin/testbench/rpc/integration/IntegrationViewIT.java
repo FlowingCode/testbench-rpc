@@ -224,6 +224,13 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   }
 
   @Test
+  public void test11_returnJsonValueNullArray() {
+    JsonArray result = (JsonArray) $server.returnJsonValueNullArray();
+    assertEquals(JsonType.NULL, result.get(0).getType());
+    assertEquals(JsonType.NULL, result.get(1).getType());
+  }
+
+  @Test
   public void test10_returnJsonString() {
     JsonString result = $server.returnJsonString(HELLO);
     assertEquals(HELLO, result.asString());
