@@ -28,6 +28,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.Route;
 import elemental.json.Json;
 import elemental.json.JsonArray;
+import elemental.json.JsonType;
 import elemental.json.JsonValue;
 import java.util.Arrays;
 
@@ -203,6 +204,17 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
   @ClientCallable
   public JsonValue returnJsonValueNullArray() {
     return createArray(Json.createNull(), Json.createNull());
+  }
+
+  @Override
+  @ClientCallable
+  public String testJsonValue(JsonValue value) {
+    if (value != null) {
+      return value.getType().name();
+    } else {
+      // https://github.com/vaadin/flow/issues/17096
+      return JsonType.NULL.name();
+    }
   }
 
 }

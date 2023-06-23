@@ -21,6 +21,7 @@ package com.flowingcode.vaadin.testbench.rpc;
 
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.testbench.HasDriver;
+import elemental.json.JsonValue;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -51,6 +52,8 @@ public interface HasRpcSupport extends HasDriver {
     for (int i = 0; i < arguments.length; i++) {
       if (arguments[i] instanceof Enum) {
         arguments[i] = ((Enum<?>) arguments[i]).name();
+      } else if (arguments[i] instanceof JsonValue) {
+        arguments[i] = TypeConversion.fromJsonValue((JsonValue) arguments[i]);
       }
     }
     StringBuilder script = new StringBuilder();
