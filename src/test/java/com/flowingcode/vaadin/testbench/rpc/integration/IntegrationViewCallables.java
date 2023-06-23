@@ -20,6 +20,8 @@
 package com.flowingcode.vaadin.testbench.rpc.integration;
 
 import com.flowingcode.vaadin.testbench.rpc.JsonArrayList;
+import elemental.json.JsonArray;
+import elemental.json.JsonValue;
 
 public interface IntegrationViewCallables {
 
@@ -44,6 +46,26 @@ public interface IntegrationViewCallables {
   String returnHelloWorld();
 
   boolean testFooEnum(TestEnum e);
+
+  JsonValue returnJsonValueBoolean(boolean arg);
+
+  JsonValue returnJsonValueInt(int arg);
+
+  JsonValue returnJsonValueDouble(double arg);
+
+  JsonValue returnJsonValueString(String arg);
+
+  JsonValue returnJsonValueNull();
+
+  JsonValue returnJsonValueBooleanArray(boolean arg1, boolean arg2);
+
+  JsonValue returnJsonValueIntArray(int arg1, int arg2);
+
+  JsonValue returnJsonValueDoubleArray(double arg1, double arg2);
+
+  JsonValue returnJsonValueStringArray(String arg1, String arg2);
+
+  JsonValue returnJsonValueNullArray();
 
   enum TestEnum {
     FOO, BAR
