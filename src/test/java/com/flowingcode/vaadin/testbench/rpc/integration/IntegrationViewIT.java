@@ -32,12 +32,15 @@ import com.flowingcode.vaadin.testbench.rpc.RpcException;
 import com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewCallables.TestEnum;
 import elemental.json.Json;
 import elemental.json.JsonArray;
+import elemental.json.JsonBoolean;
+import elemental.json.JsonNull;
+import elemental.json.JsonNumber;
+import elemental.json.JsonString;
 import elemental.json.JsonType;
 import elemental.json.JsonValue;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
@@ -184,7 +187,6 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
     assertEquals(JsonType.NULL, result.getType());
   }
 
-
   @Test
   public void test11_returnJsonValueStringArray() {
     JsonArray result = (JsonArray) $server.returnJsonValueStringArray(HELLO, WORLD);
@@ -222,10 +224,40 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
   }
 
   @Test
-  public void test11_returnJsonValueNullArray() {
-    JsonArray result = (JsonArray) $server.returnJsonValueNullArray();
-    assertEquals(JsonType.NULL, result.get(0).getType());
-    assertEquals(JsonType.NULL, result.get(1).getType());
+  public void test10_returnJsonString() {
+    JsonString result = $server.returnJsonString(HELLO);
+    assertEquals(HELLO, result.asString());
+  }
+
+  @Test
+  public void test10_returnJsonBoolean() {
+    JsonBoolean result = $server.returnJsonBoolean(true);
+    assertEquals(true, result.asBoolean());
+  }
+
+  @Test
+  public void test10_returnJsonInt() {
+    JsonValue result = $server.returnJsonValueInt(42);
+    assertEquals(JsonType.NUMBER, result.getType());
+    assertEquals(42.0, result.asNumber(), 0);
+  }
+
+  @Test
+  public void test10_returnJsonDouble() {
+    JsonNumber result = $server.returnJsonNumber(42.1);
+    assertEquals(42.1, result.asNumber(), 0);
+  }
+
+  @Test
+  public void test10_returnJsonNull() {
+    JsonNull result = $server.returnJsonNull();
+    assertEquals(JsonType.NULL, result.getType());
+  }
+
+  @Test
+  public void test10_returnJsonArray() {
+    JsonArray result = $server.returnJsonArray();
+    assertEquals(JsonType.ARRAY, result.getType());
   }
 
   @Test

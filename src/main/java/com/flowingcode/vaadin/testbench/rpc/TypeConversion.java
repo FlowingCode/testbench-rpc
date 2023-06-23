@@ -2,6 +2,7 @@ package com.flowingcode.vaadin.testbench.rpc;
 
 import elemental.json.Json;
 import elemental.json.JsonArray;
+import elemental.json.JsonObject;
 import elemental.json.JsonValue;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -18,8 +19,8 @@ class TypeConversion {
 
   static Object cast(Object value, Class<?> returnType) {
 
-    if (returnType == JsonValue.class) {
-      return toJsonValue(value);
+    if (JsonValue.class.isAssignableFrom(returnType)) {
+      value = toJsonValue(value);
     }
 
     if (value == null) {
@@ -111,7 +112,7 @@ class TypeConversion {
         || type == Integer.class
         || type == Double.class
         || type == String.class
-        || type == JsonValue.class;
+        || JsonValue.class.isAssignableFrom(type) && !JsonObject.class.isAssignableFrom(type);
   }
 
   static void checkMethod(Method method) {

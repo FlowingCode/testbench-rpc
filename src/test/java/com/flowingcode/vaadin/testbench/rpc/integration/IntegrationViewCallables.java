@@ -21,6 +21,10 @@ package com.flowingcode.vaadin.testbench.rpc.integration;
 
 import com.flowingcode.vaadin.testbench.rpc.JsonArrayList;
 import elemental.json.JsonArray;
+import elemental.json.JsonBoolean;
+import elemental.json.JsonNull;
+import elemental.json.JsonNumber;
+import elemental.json.JsonString;
 import elemental.json.JsonValue;
 
 public interface IntegrationViewCallables {
@@ -66,6 +70,16 @@ public interface IntegrationViewCallables {
   JsonValue returnJsonValueStringArray(String arg1, String arg2);
 
   JsonValue returnJsonValueNullArray();
+
+  JsonBoolean returnJsonBoolean(boolean arg);
+
+  JsonNumber returnJsonNumber(double arg);
+
+  JsonString returnJsonString(String arg);
+
+  JsonNull returnJsonNull();
+
+  JsonArray returnJsonArray();
 
   String testJsonValue(JsonValue value);
 
