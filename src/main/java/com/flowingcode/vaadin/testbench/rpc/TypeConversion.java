@@ -1,5 +1,7 @@
 package com.flowingcode.vaadin.testbench.rpc;
 
+import elemental.json.Json;
+import elemental.json.JsonArray;
 import elemental.json.JsonValue;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -14,6 +16,11 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 class TypeConversion {
 
   static Object cast(Object value, Class<?> returnType) {
+
+    if (returnType == JsonValue.class) {
+      return toJsonValue(value);
+    }
+
     if (value == null) {
       return null;
     }
@@ -32,6 +39,34 @@ class TypeConversion {
 
     throw new ClassCastException(String.format("Cannot cast %s as %s",
         value.getClass().getName(), returnType.getName()));
+  }
+
+  private static JsonValue toJsonValue(Object arg) {
+    if (arg == null) {
+      return Json.createNull();
+    }
+    if (arg instanceof Boolean) {
+      return Json.create((Boolean) arg);
+    }
+    if (arg instanceof String) {
+      return Json.create((String) arg);
+    }
+    if (arg instanceof Long) {
+      return Json.create((Long) arg);
+    }
+    if (arg instanceof Double) {
+      return Json.create((Double) arg);
+    }
+    if (arg instanceof List) {
+      List<?> list = (List<?>) arg;
+      JsonArray array = Json.createArray();
+      for (Object e : list) {
+        array.set(array.length(), toJsonValue(e));
+      }
+      return array;
+    }
+    throw new ClassCastException(String.format("Cannot cast %s as %s",
+        arg.getClass().getName(), JsonValue.class));
   }
 
   static JsonArrayList<?> castList(List<?> value, Type returnType) {

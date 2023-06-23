@@ -23,15 +23,21 @@ import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewCo
 import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.HELLO_WORLD;
 import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.WORLD;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import com.flowingcode.vaadin.testbench.rpc.AbstractViewTest;
 import com.flowingcode.vaadin.testbench.rpc.HasRpcSupport;
 import com.flowingcode.vaadin.testbench.rpc.RpcException;
 import com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewCallables.TestEnum;
+import elemental.json.Json;
+import elemental.json.JsonArray;
+import elemental.json.JsonType;
+import elemental.json.JsonValue;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
@@ -142,6 +148,84 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
     assertThat(list, Matchers.hasSize(2));
     assertThat(list.get(0), Matchers.equalTo(1L));
     assertThat(list.get(1), Matchers.equalTo(2L));
+  }
+
+  @Test
+  public void test10_returnJsonValueString() {
+    JsonValue result = $server.returnJsonValueString(HELLO);
+    assertEquals(JsonType.STRING, result.getType());
+    assertEquals(HELLO, result.asString());
+  }
+
+  @Test
+  public void test10_returnJsonValueBoolean() {
+    JsonValue result = $server.returnJsonValueBoolean(true);
+    assertEquals(JsonType.BOOLEAN, result.getType());
+    assertEquals(true, result.asBoolean());
+  }
+
+  @Test
+  public void test10_returnJsonValueInt() {
+    JsonValue result = $server.returnJsonValueInt(42);
+    assertEquals(JsonType.NUMBER, result.getType());
+    assertEquals(42.0, result.asNumber(), 0);
+  }
+
+  @Test
+  public void test10_returnJsonValueDouble() {
+    JsonValue result = $server.returnJsonValueDouble(42.1);
+    assertEquals(JsonType.NUMBER, result.getType());
+    assertEquals(42.1, result.asNumber(), 0);
+  }
+
+  @Test
+  public void test10_returnJsonValueNull() {
+    JsonValue result = $server.returnJsonValueNull();
+    assertEquals(JsonType.NULL, result.getType());
+  }
+
+
+  @Test
+  public void test11_returnJsonValueStringArray() {
+    JsonArray result = (JsonArray) $server.returnJsonValueStringArray(HELLO, WORLD);
+    assertEquals(JsonType.STRING, result.get(0).getType());
+    assertEquals(JsonType.STRING, result.get(1).getType());
+    assertEquals(HELLO, result.getString(0));
+    assertEquals(WORLD, result.getString(1));
+  }
+
+  @Test
+  public void test11_returnJsonValueBooleanArray() {
+    JsonArray result = (JsonArray) $server.returnJsonValueBooleanArray(true, false);
+    assertEquals(JsonType.BOOLEAN, result.get(0).getType());
+    assertEquals(JsonType.BOOLEAN, result.get(1).getType());
+    assertEquals(true, result.getBoolean(0));
+    assertEquals(false, result.getBoolean(1));
+  }
+
+  @Test
+  public void test11_returnJsonValueIntArray() {
+    JsonArray result = (JsonArray) $server.returnJsonValueIntArray(24, 42);
+    assertEquals(JsonType.NUMBER, result.get(0).getType());
+    assertEquals(JsonType.NUMBER, result.get(1).getType());
+    assertEquals(24, result.getNumber(0), 0);
+    assertEquals(42, result.getNumber(1), 0);
+  }
+
+  @Test
+  public void test11_returnJsonValueDoubleArray() {
+    JsonArray result = (JsonArray) $server.returnJsonValueDoubleArray(24.1, 42.1);
+    assertEquals(JsonType.NUMBER, result.get(0).getType());
+    assertEquals(JsonType.NUMBER, result.get(1).getType());
+    assertEquals(24.1, result.getNumber(0), 0);
+    assertEquals(42.1, result.getNumber(1), 0);
+  }
+
+  @Test
+  public void test11_returnJsonValueNullArray() {
+    JsonArray result = (JsonArray) $server.returnJsonValueNullArray();
+    assertEquals(JsonType.NULL, result.get(0).getType());
+    assertEquals(JsonType.NULL, result.get(1).getType());
   }
 
 }

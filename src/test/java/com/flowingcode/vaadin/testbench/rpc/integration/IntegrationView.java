@@ -26,6 +26,9 @@ import com.flowingcode.vaadin.testbench.rpc.JsonArrayList;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.Route;
+import elemental.json.Json;
+import elemental.json.JsonArray;
+import elemental.json.JsonValue;
 import java.util.Arrays;
 
 @SuppressWarnings("serial")
@@ -132,6 +135,74 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
   @ClientCallable
   public JsonArrayList<Long> getLongs() {
     return JsonArrayList.fromLongs(Arrays.asList(1L, 2L));
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueBoolean(boolean arg) {
+    return Json.create(arg);
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueInt(int arg) {
+    return Json.create(arg);
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueDouble(double arg) {
+    return Json.create(arg);
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueString(String arg) {
+    return Json.create(arg);
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueNull() {
+    return Json.createNull();
+  }
+
+  private JsonArray createArray(JsonValue... elements) {
+    JsonArray array = Json.createArray();
+    for (int i = 0; i < elements.length; i++) {
+      array.set(i, elements[i]);
+    }
+    return array;
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueBooleanArray(boolean arg1, boolean arg2) {
+    return createArray(Json.create(arg1), Json.create(arg2));
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueIntArray(int arg1, int arg2) {
+    return createArray(Json.create(arg1), Json.create(arg2));
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueDoubleArray(double arg1, double arg2) {
+    return createArray(Json.create(arg1), Json.create(arg2));
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueStringArray(String arg1, String arg2) {
+    return createArray(Json.create(arg1), Json.create(arg2));
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueNullArray() {
+    return createArray(Json.createNull(), Json.createNull());
   }
 
 }
