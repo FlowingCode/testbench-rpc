@@ -60,9 +60,21 @@ public interface HasRpcSupport extends HasDriver {
 
   @Deprecated
   default Object call(String callable, Object... arguments) {
-    return HasRpcSupport$InvocationHandler.call(this, callable, arguments);
+    try {
+      return HasRpcSupport$InvocationHandler.call(this, callable, arguments);
+    } catch (RpcCallException e) {
+      throw new RpcException(callable, arguments, e.getMessage());
+    }
   }
 
+}
+
+
+@SuppressWarnings("serial")
+class RpcCallException extends Exception {
+  public RpcCallException(String message) {
+    super(message);
+  }
 }
 
 
@@ -70,7 +82,6 @@ public interface HasRpcSupport extends HasDriver {
 class HasRpcSupport$InvocationHandler implements InvocationHandler {
 
   private final HasRpcSupport rpc;
-
 
   /**
    * Call a {@link ClientCallable} defined on the integration view.
@@ -82,7 +93,8 @@ class HasRpcSupport$InvocationHandler implements InvocationHandler {
    *     WebDriver.Timeouts}).
    * @throws RuntimeException if the callable fails.
    */
-  static Object call(HasRpcSupport rpc, String callable, Object... arguments) {
+  static Object call(HasRpcSupport rpc, String callable, Object... arguments)
+      throws RpcCallException {
     arguments = Optional.ofNullable(arguments).orElse(new Object[0]);
     for (int i = 0; i < arguments.length; i++) {
       if (arguments[i] instanceof Enum) {
@@ -131,7 +143,7 @@ class HasRpcSupport$InvocationHandler implements InvocationHandler {
             .executeAsyncScript(script.toString(), callable, callArguments, raw);
 
     if (!result.containsKey("result")) {
-      throw new RpcException(callable, arguments, (String) result.get("message"));
+      throw new RpcCallException((String) result.get("message"));
     }
 
     return result.get("result");
@@ -140,7 +152,12 @@ class HasRpcSupport$InvocationHandler implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
-      Object result = call(rpc, method.getName(), args);
+      Object result;
+      try {
+        result = call(rpc, method.getName(), args);
+      } catch (RpcCallException e) {
+        throw new RpcException(method.getName(), args, e.getMessage());
+      }
 
       Class<?> returnType = method.getReturnType();
 
