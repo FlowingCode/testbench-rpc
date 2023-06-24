@@ -35,6 +35,7 @@ import elemental.json.JsonArray;
 import elemental.json.JsonBoolean;
 import elemental.json.JsonNull;
 import elemental.json.JsonNumber;
+import elemental.json.JsonObject;
 import elemental.json.JsonString;
 import elemental.json.JsonType;
 import elemental.json.JsonValue;
@@ -297,4 +298,26 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
     assertEquals(value.getType(), JsonType.valueOf($server.testJsonValue(value)));
   }
 
+  @Test
+  public void test13_readJsonObject() {
+    JsonObject obj = Json.createObject();
+    obj.put("key", HELLO);
+    assertEquals(HELLO, $server.readJsonObject(obj, "key").asString());
+  }
+
+  @Test
+  public void test13_returnJsonObject() {
+    JsonObject obj = Json.createObject();
+    obj.put("key", HELLO);
+    JsonObject result = $server.returnJsonObject("key", HELLO);
+    assertEquals(HELLO, result.getString("key"));
+  }
+
+  @Test
+  public void test13_returnJsonValueJsonObject() {
+    JsonObject obj = Json.createObject();
+    obj.put("key", HELLO);
+    JsonObject result = (JsonObject) $server.returnJsonValueJsonObject("key", HELLO);
+    assertEquals(HELLO, result.getString("key"));
+  }
 }

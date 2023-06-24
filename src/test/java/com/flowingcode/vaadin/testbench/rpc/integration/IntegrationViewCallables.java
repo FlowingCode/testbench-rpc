@@ -24,6 +24,7 @@ import elemental.json.JsonArray;
 import elemental.json.JsonBoolean;
 import elemental.json.JsonNull;
 import elemental.json.JsonNumber;
+import elemental.json.JsonObject;
 import elemental.json.JsonString;
 import elemental.json.JsonValue;
 
@@ -97,5 +98,13 @@ public interface IntegrationViewCallables {
   JsonArrayList<Integer> getIntegers();
 
   JsonArrayList<Long> getLongs();
+
+  JsonValue returnJsonValueJsonObject(String key, String value);
+
+  JsonObject returnJsonObject(String key, String value);
+
+  JsonValue readJsonObject(JsonObject obj, String key);
+
+  boolean isPrototypeOf(String string);
 
 }

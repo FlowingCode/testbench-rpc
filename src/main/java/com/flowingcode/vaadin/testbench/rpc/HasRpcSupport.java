@@ -21,11 +21,14 @@ package com.flowingcode.vaadin.testbench.rpc;
 
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.testbench.HasDriver;
+import elemental.json.JsonObject;
 import elemental.json.JsonValue;
+import elemental.json.impl.JsonUtil;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,8 +61,20 @@ public interface HasRpcSupport extends HasDriver {
     }
     StringBuilder script = new StringBuilder();
 
+    Object callArguments[] = arguments.clone();
+
+    List<Boolean> raw = new ArrayList<>(arguments.length);
+    for (int i = 0; i < arguments.length; i++) {
+      if (arguments[i] instanceof JsonObject) {
+        raw.add(Boolean.FALSE);
+        callArguments[i] = JsonUtil.stringify(((JsonObject) arguments[i]));
+      } else {
+        raw.add(Boolean.TRUE);
+      }
+    }
+
     // view is the (first) children of <body> that has a $server
-    script.append("var callback = arguments[2];");
+    script.append("var callback = arguments[3];");
     script.append("var view = [].slice.call(document.body.children)"); // V14
     script.append("   .concat([].slice.call(document.querySelectorAll('body > #outlet > * > *')))"); // V22+
     script.append("   .find(e=>e.$server);");
@@ -70,15 +85,18 @@ public interface HasRpcSupport extends HasDriver {
     script.append("var callable = view.$server[arguments[0]];");
     script.append(
         "if (!callable) return callback({message:'Method is not published. Check that the method exists and it is annotated with @ClientCallable'}), 0;");
+
+    script.append("var raw = arguments[2];");
+    script.append("arguments[1] = arguments[1].map((arg,i)=>raw[i]?arg:JSON.parse(arg));");
+    script.append("debugger;");
     script.append("callable.call(view.$server, ...arguments[1])");
     script.append(" .then(result=>callback({result}))");
     script.append(" .catch(e=>callback({message : e.message || ''}));");
 
     @SuppressWarnings("unchecked")
     Map<String, Object> result =
-        (Map<String, Object>)
-            ((JavascriptExecutor) getDriver())
-            .executeAsyncScript(script.toString(), callable, arguments);
+        (Map<String, Object>) ((JavascriptExecutor) getDriver())
+            .executeAsyncScript(script.toString(), callable, callArguments, raw);
 
     if (!result.containsKey("result")) {
       throw new RpcException(callable, arguments, (String) result.get("message"));

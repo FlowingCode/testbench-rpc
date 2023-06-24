@@ -31,6 +31,7 @@ import elemental.json.JsonArray;
 import elemental.json.JsonBoolean;
 import elemental.json.JsonNull;
 import elemental.json.JsonNumber;
+import elemental.json.JsonObject;
 import elemental.json.JsonString;
 import elemental.json.JsonType;
 import elemental.json.JsonValue;
@@ -251,4 +252,31 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
     return Json.createArray();
   }
 
+  @Override
+  @ClientCallable
+  public JsonObject returnJsonObject(String key, String value) {
+    JsonObject obj = Json.createObject();
+    obj.put(key, value);
+    return obj;
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue returnJsonValueJsonObject(String key, String value) {
+    JsonObject obj = Json.createObject();
+    obj.put(key, value);
+    return obj;
+  }
+
+  @Override
+  @ClientCallable
+  public JsonValue readJsonObject(JsonObject obj, String key) {
+    return obj.get(key);
+  }
+
+  @Override
+  @ClientCallable
+  public boolean isPrototypeOf(String string) {
+    return true;
+  }
 }
