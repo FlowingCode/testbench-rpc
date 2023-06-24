@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ClassUtils;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -119,42 +120,46 @@ public interface HasRpcSupport extends HasDriver {
       }
     }
 
-    return intf.cast(
-        Proxy.newProxyInstance(
-            intf.getClassLoader(),
-            new Class<?>[] {intf},
-            new InvocationHandler() {
-              @Override
-              public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                try {
-                  Object result = call(method.getName(), args);
-
-                  Class<?> returnType = method.getReturnType();
-
-                  if (returnType == Void.TYPE) {
-                    return null;
-                  }
-
-                  if (returnType.isPrimitive()) {
-                    if (result == null) {
-                      throw new ClassCastException("Cannot cast null as " + returnType);
-                    }
-                    returnType = ClassUtils.primitiveToWrapper(method.getReturnType());
-                  }
-
-                  if (returnType == JsonArrayList.class) {
-                    return TypeConversion.castList((List<?>) result, method.getGenericReturnType());
-                  }
-
-                  return TypeConversion.cast(result, returnType);
-
-                } catch (RpcException e) {
-                  throw e;
-                } catch (Exception e) {
-                  throw new RpcException(method.getName(), args, e);
-                }
-              }
-
-            }));
+    return intf.cast(Proxy.newProxyInstance(intf.getClassLoader(), new Class<?>[] {intf},
+        new HasRpcSupport$InvocationHandler(this)));
   }
+}
+
+
+@RequiredArgsConstructor
+class HasRpcSupport$InvocationHandler implements InvocationHandler {
+
+  private final HasRpcSupport rpc;
+
+  @Override
+  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    try {
+      Object result = rpc.call(method.getName(), args);
+
+      Class<?> returnType = method.getReturnType();
+
+      if (returnType == Void.TYPE) {
+        return null;
+      }
+
+      if (returnType.isPrimitive()) {
+        if (result == null) {
+          throw new ClassCastException("Cannot cast null as " + returnType);
+        }
+        returnType = ClassUtils.primitiveToWrapper(method.getReturnType());
+      }
+
+      if (returnType == JsonArrayList.class) {
+        return TypeConversion.castList((List<?>) result, method.getGenericReturnType());
+      }
+
+      return TypeConversion.cast(result, returnType);
+
+    } catch (RpcException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new RpcException(method.getName(), args, e);
+    }
+  }
+
 }
