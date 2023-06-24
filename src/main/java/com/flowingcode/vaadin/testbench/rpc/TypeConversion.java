@@ -10,6 +10,7 @@ import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.reflect.TypeUtils;
@@ -43,7 +44,8 @@ class TypeConversion {
         value.getClass().getName(), returnType.getName()));
   }
 
-  private static JsonValue toJsonValue(Object arg) {
+  @SuppressWarnings("unchecked")
+  static JsonValue toJsonValue(Object arg) {
     if (arg == null) {
       return Json.createNull();
     }
@@ -66,6 +68,11 @@ class TypeConversion {
         array.set(array.length(), toJsonValue(e));
       }
       return array;
+    }
+    if (arg instanceof Map) {
+      JsonObject object = Json.createObject();
+      ((Map<String, Object>) arg).forEach((k, v) -> object.put(k, toJsonValue(v)));
+      return object;
     }
     throw new ClassCastException(String.format("Cannot cast %s as %s",
         arg.getClass().getName(), JsonValue.class));
@@ -112,7 +119,7 @@ class TypeConversion {
         || type == Integer.class
         || type == Double.class
         || type == String.class
-        || JsonValue.class.isAssignableFrom(type) && !JsonObject.class.isAssignableFrom(type);
+        || JsonValue.class.isAssignableFrom(type);
   }
 
   static void checkMethod(Method method) {
