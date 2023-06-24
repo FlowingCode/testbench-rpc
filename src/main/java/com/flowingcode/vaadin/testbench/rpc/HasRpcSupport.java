@@ -45,6 +45,26 @@ public interface HasRpcSupport extends HasDriver {
    * Create a TestBench proxy that invokes methods from the interface through a client call.
    */
   default <T> T createCallableProxy(Class<T> intf) {
+    return HasRpcSupport$companion.createCallableProxy(this, intf);
+  }
+
+
+  @Deprecated
+  default Object call(String callable, Object... arguments) {
+    try {
+      return HasRpcSupport$InvocationHandler.call(this, callable, arguments);
+    } catch (RpcCallException e) {
+      throw new RpcException(callable, arguments, e.getMessage());
+    }
+  }
+
+}
+
+
+class HasRpcSupport$companion {
+
+  static <T> T createCallableProxy(HasRpcSupport rpc, Class<T> intf) {
+
     if (!intf.isInterface()) {
       throw new IllegalArgumentException(intf.getName() + " is not an interface");
     }
@@ -55,16 +75,7 @@ public interface HasRpcSupport extends HasDriver {
     }
 
     return intf.cast(Proxy.newProxyInstance(intf.getClassLoader(), new Class<?>[] {intf},
-        new HasRpcSupport$InvocationHandler(this)));
-  }
-
-  @Deprecated
-  default Object call(String callable, Object... arguments) {
-    try {
-      return HasRpcSupport$InvocationHandler.call(this, callable, arguments);
-    } catch (RpcCallException e) {
-      throw new RpcException(callable, arguments, e.getMessage());
-    }
+        new HasRpcSupport$InvocationHandler(rpc)));
   }
 
 }
