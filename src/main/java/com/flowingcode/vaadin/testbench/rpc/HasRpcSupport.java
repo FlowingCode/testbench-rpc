@@ -42,6 +42,37 @@ import org.openqa.selenium.WebDriver;
 public interface HasRpcSupport extends HasDriver {
 
   /**
+   * Create a TestBench proxy that invokes methods from the interface through a client call.
+   */
+  default <T> T createCallableProxy(Class<T> intf) {
+    if (!intf.isInterface()) {
+      throw new IllegalArgumentException(intf.getName() + " is not an interface");
+    }
+    for (Method method : intf.getMethods()) {
+      if (!Modifier.isStatic(method.getModifiers())) {
+        TypeConversion.checkMethod(method);
+      }
+    }
+
+    return intf.cast(Proxy.newProxyInstance(intf.getClassLoader(), new Class<?>[] {intf},
+        new HasRpcSupport$InvocationHandler(this)));
+  }
+
+  @Deprecated
+  default Object call(String callable, Object... arguments) {
+    return HasRpcSupport$InvocationHandler.call(this, callable, arguments);
+  }
+
+}
+
+
+@RequiredArgsConstructor
+class HasRpcSupport$InvocationHandler implements InvocationHandler {
+
+  private final HasRpcSupport rpc;
+
+
+  /**
    * Call a {@link ClientCallable} defined on the integration view.
    *
    * @param callable the client callable name
@@ -51,7 +82,7 @@ public interface HasRpcSupport extends HasDriver {
    *     WebDriver.Timeouts}).
    * @throws RuntimeException if the callable fails.
    */
-  default Object call(String callable, Object... arguments) {
+  static Object call(HasRpcSupport rpc, String callable, Object... arguments) {
     arguments = Optional.ofNullable(arguments).orElse(new Object[0]);
     for (int i = 0; i < arguments.length; i++) {
       if (arguments[i] instanceof Enum) {
@@ -96,7 +127,7 @@ public interface HasRpcSupport extends HasDriver {
 
     @SuppressWarnings("unchecked")
     Map<String, Object> result =
-        (Map<String, Object>) ((JavascriptExecutor) getDriver())
+        (Map<String, Object>) ((JavascriptExecutor) rpc.getDriver())
             .executeAsyncScript(script.toString(), callable, callArguments, raw);
 
     if (!result.containsKey("result")) {
@@ -106,35 +137,10 @@ public interface HasRpcSupport extends HasDriver {
     return result.get("result");
   }
 
-  /**
-   * Create a TestBench proxy that invokes methods from the interface through a client {@link
-   * #call}.
-   */
-  default <T> T createCallableProxy(Class<T> intf) {
-    if (!intf.isInterface()) {
-      throw new IllegalArgumentException(intf.getName() + " is not an interface");
-    }
-    for (Method method : intf.getMethods()) {
-      if (!Modifier.isStatic(method.getModifiers())) {
-        TypeConversion.checkMethod(method);
-      }
-    }
-
-    return intf.cast(Proxy.newProxyInstance(intf.getClassLoader(), new Class<?>[] {intf},
-        new HasRpcSupport$InvocationHandler(this)));
-  }
-}
-
-
-@RequiredArgsConstructor
-class HasRpcSupport$InvocationHandler implements InvocationHandler {
-
-  private final HasRpcSupport rpc;
-
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
-      Object result = rpc.call(method.getName(), args);
+      Object result = call(rpc, method.getName(), args);
 
       Class<?> returnType = method.getReturnType();
 
