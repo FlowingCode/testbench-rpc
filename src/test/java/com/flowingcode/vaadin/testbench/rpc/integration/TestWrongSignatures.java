@@ -21,6 +21,8 @@ package com.flowingcode.vaadin.testbench.rpc.integration;
 
 import com.flowingcode.vaadin.testbench.rpc.HasRpcSupport;
 import com.flowingcode.vaadin.testbench.rpc.IllegalRpcSignatureException;
+import com.flowingcode.vaadin.testbench.rpc.RmiRemote;
+import com.flowingcode.vaadin.testbench.rpc.RmiCallable;
 import java.util.List;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
@@ -55,6 +57,41 @@ public class TestWrongSignatures implements HasRpcSupport {
 
   interface WrongSignature_ListArgument {
     void foo(List<Integer> arg);
+  }
+
+  interface WrongSignature_RmiReturnRemote {
+    RmiRemote foo();
+  }
+
+  interface WrongSignature_RmiRemoteArgument {
+    void foo(RmiRemote arg);
+  }
+
+  interface GoodSignature_RmiReturnRemote extends RmiCallable {
+    RmiRemote foo();
+  }
+
+  interface GoodSignature_RmiRemoteArgument extends RmiCallable {
+    void foo(RmiRemote arg);
+  }
+
+  interface WrongSignature_RmiObjectArgument extends RmiCallable {
+    void foo(Object arg);
+  }
+
+  interface WrongSignature_RmiReturnObject extends RmiCallable {
+    Object foo();
+  }
+
+  static class RemoteImpl implements RmiRemote {
+  }
+
+  interface WrongSignature_RmiReturnRemoteImpl extends RmiCallable {
+    RemoteImpl foo();
+  }
+
+  interface WrongSignature_RmiRemoteImplArgument extends RmiCallable {
+    void foo(RemoteImpl impl);
   }
 
   enum MyEnum {
@@ -108,6 +145,46 @@ public class TestWrongSignatures implements HasRpcSupport {
   @Test(expected = IllegalRpcSignatureException.class)
   public void testListArgument() {
     createCallableProxy(WrongSignature_ListArgument.class);
+  }
+
+  @Test(expected = IllegalRpcSignatureException.class)
+  public void testRmiReturnRemote() {
+    createCallableProxy(WrongSignature_RmiReturnRemote.class);
+  }
+
+  @Test(expected = IllegalRpcSignatureException.class)
+  public void testRmiRemoteArgument() {
+    createCallableProxy(WrongSignature_RmiRemoteArgument.class);
+  }
+
+  @Test
+  public void testReturnRmiRemote_OK() {
+    createCallableProxy(GoodSignature_RmiReturnRemote.class);
+  }
+
+  @Test
+  public void testRmiRemoteArgument_OK() {
+    createCallableProxy(GoodSignature_RmiRemoteArgument.class);
+  }
+
+  @Test(expected = IllegalRpcSignatureException.class)
+  public void testRmiObjectArgument() {
+    createCallableProxy(WrongSignature_RmiObjectArgument.class);
+  }
+
+  @Test(expected = IllegalRpcSignatureException.class)
+  public void testRmiReturnObject() {
+    createCallableProxy(WrongSignature_RmiReturnObject.class);
+  }
+
+  @Test(expected = IllegalRpcSignatureException.class)
+  public void testRmiRemoteImplArgument() {
+    createCallableProxy(WrongSignature_RmiRemoteImplArgument.class);
+  }
+
+  @Test(expected = IllegalRpcSignatureException.class)
+  public void testRmiReturnRemoteImpl() {
+    createCallableProxy(WrongSignature_RmiReturnRemoteImpl.class);
   }
 
   @Override

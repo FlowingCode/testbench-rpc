@@ -23,6 +23,7 @@ import elemental.json.Json;
 import elemental.json.JsonArray;
 import elemental.json.JsonObject;
 import elemental.json.JsonValue;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -141,7 +142,7 @@ class TypeConversion {
         || JsonValue.class.isAssignableFrom(type);
   }
 
-  static void checkMethod(Method method) {
+  private static void checkMethod(Method method) {
 
     for (Class<?> type : method.getParameterTypes()) {
       if (!type.isEnum() && !isValidType(type)) {
@@ -166,6 +167,40 @@ class TypeConversion {
     if (!isValidType(method.getReturnType())) {
       throw new IllegalRpcSignatureException(String
           .format("Return type %s is not supported by TestBench-RPC.", method.getReturnType()));
+    }
+  }
+
+  private boolean isValidRmiType(Class<?> type) {
+    if (type.isPrimitive()) {
+      return true;
+    } else if (type.isInterface()) {
+      return Serializable.class.isAssignableFrom(type) || RmiRemote.class.isAssignableFrom(type);
+    } else {
+      return Serializable.class.isAssignableFrom(type);
+    }
+  }
+
+  private static void checkRmiMethod(Method method) {
+    for (Class<?> type : method.getParameterTypes()) {
+      if (!isValidRmiType(type)) {
+        throw new IllegalRpcSignatureException(
+            String.format("Argument of type %s is not primitive, remote or serializable.",
+                type.getName()));
+      }
+    }
+
+    if (!isValidRmiType(method.getReturnType())) {
+      throw new IllegalRpcSignatureException(
+          String.format("Return type %s is not primitive, remote or serializable.",
+              method.getReturnType()));
+    }
+  }
+
+  static void checkMethod(Method method, boolean rmiSupported) {
+    if (rmiSupported) {
+      checkRmiMethod(method);
+    } else {
+      checkMethod(method);
     }
   }
 

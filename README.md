@@ -142,3 +142,74 @@ In TestBench side, the `JsonArrayList` will implement `Collection<T>`, which fac
     assertThat(list.get(1), Matchers.equalTo(2));
   }
 ```
+
+
+### Remote Method Invocation
+
+RPC for Vaadin TestBench provides an enhanced RMI-style mechanism that allows the test code to transparently invoke methods on a server-side object, as if the object were local. 
+The mechanism also enables the test environment to manipulate the server-side instances. This means that the test scripts can change the state of the server-side components, modify their properties, or simulate different scenarios to test the behavior of the application. (Note: this mechanism follows RMI semantics, but it's not an implementation of Java RMI.)
+
+If the Vaadin view and callable interface have support for RMI-style invocations, then any interface extending `RmiRemote`, as well as serializable classes and interfaces can be used as formal parameters or return type. It's an error if the formal parameter or return type is a serializable class that implements `RmiRemote`. 
+ 
+Remote objects are automatically exported upon return or reference, eliminating the need for "binding" them with a RMI registry. Once a remote object is returned to the test code, it can be seamlessly passed as parameters for further remote method invocations, and calling a method on the remote object will dispatch a remote invocation in the server side. During a remote method call, stubs representing the remote objects are transmitted in place of the actual objects. In the test code, stubs for the same remote object will be equals, but they will not necessarily be the same instance. In the application code, stubs will be resolved to the same original remote instance.
+
+On the other hand, when non-remote objects are passed or returned they are copied through Java serialization, thus changes made to the copied object do not affect the original object. 
+However, referential integrity is guaranteed within a single remote method call (multiple references to the same object within arguments of a single remote method call will still refer to the same instance). When passing or returning values by copy, it's a runtime error if the actual value is a `Component` or an objects that references `Component`.
+
+Instances of remote objects share the same lifecycle as the view, and they are garbage collected when the view is collected.
+Both the application and the integration tests must use the same classes and the same version of RPC for Vaadin TestBench (there is no protocol negotiation or dynamic classloading).
+
+## Getting started with RMI
+
+In order to support RMI-style invocations:
+
+1. Make the callable interface extend `RmiCallable`
+```
+public interface SampleCallables extends RmiCallable {
+  // ...
+}
+```
+
+2. Override the `$call` method in the view class:
+
+```
+@Route("")
+public class SampleView extends Div implements SampleCallables {
+  @Override
+  @ClientCallable
+  public JsonValue $call(JsonObject invocation) {
+    return SampleCallables.super.$call(invocation);
+  }
+}
+```
+
+3. Interfaces extending `RmiRemote` can be used as argument or return types in the callable interface:
+
+```
+  interface MyRemoteObject extends RmiRemote { 
+    String getName(); 
+  }
+  
+  public interface SampleCallables extends RmiCallable {
+    MyRemoteObject createRemote(String name);
+  }
+```
+
+4. In the view class, implement the additional methods (without `@ClientCallable`). Note that remote objects are automatically registered with RMI:
+
+```
+  @Override
+  public MyRemoteObject createRemote(String name) {
+    return new MyRemoteObjectImpl(name);
+  }
+```  
+ 
+5. In the test class, methods called on remote objects will execute in the server.
+
+```
+  @Test
+  public void testNotification() {
+    MyRemoteObject remote = $server.createRemote("foo");
+    assertEquals("foo", remote.getName());
+  }
+```  
