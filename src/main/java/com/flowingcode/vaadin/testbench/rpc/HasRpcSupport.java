@@ -20,26 +20,40 @@
 package com.flowingcode.vaadin.testbench.rpc;
 
 import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.internal.JsonCodec;
 import com.vaadin.testbench.HasDriver;
+import elemental.json.Json;
+import elemental.json.JsonArray;
 import elemental.json.JsonObject;
 import elemental.json.JsonValue;
 import elemental.json.impl.JsonUtil;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ClassUtils;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
-/** @author Javier Godoy / Flowing Code */
+/**
+ * Provides support for Remote Procedure Calls (RPC) using TestBench.
+ * 
+ * @author Javier Godoy / Flowing Code
+ */
 public interface HasRpcSupport extends HasDriver {
 
   /**
@@ -64,24 +78,51 @@ public interface HasRpcSupport extends HasDriver {
 
 class HasRpcSupport$companion {
 
-  static <T> T createCallableProxy(HasRpcSupport rpc, Class<T> intf) {
-
-    if (!intf.isInterface()) {
-      throw new IllegalArgumentException(intf.getName() + " is not an interface");
+  private static boolean isRmiSupported(Class<?> interfaces[], String instanceId) {
+    for (Class<?> intf : interfaces) {
+      if (instanceId == null && RmiCallable.class.isAssignableFrom(intf)) {
+        return true;
+      }
+      if (instanceId != null && RmiRemote.class.isAssignableFrom(intf)) {
+        return true;
+      }
     }
-    for (Method method : intf.getMethods()) {
-      if (!Modifier.isStatic(method.getModifiers())) {
-        TypeConversion.checkMethod(method);
+    return false;
+  }
+
+  static <T> T createCallableProxy(HasRpcSupport rpc, Class<T> intf) {
+    return intf.cast(createCallableProxy(rpc, new Class<?>[] {intf}, null));
+  }
+
+  static Object createCallableProxy(HasRpcSupport rpc, Class<?> interfaces[], String instanceId) {
+    final boolean rmiSupported = isRmiSupported(interfaces, instanceId);
+
+    for (Class<?> intf : interfaces) {
+      if (!intf.isInterface()) {
+        throw new IllegalArgumentException(intf.getName() + " is not an interface");
+      }
+
+      for (Method method : intf.getMethods()) {
+        if (!Modifier.isStatic(method.getModifiers())) {
+          TypeConversion.checkMethod(method, rmiSupported);
+        }
       }
     }
 
-    InvocationHandler invocationHandler = new HasRpcSupport$SimpleInvocationHandler(rpc);
-    return intf.cast(Proxy.newProxyInstance(intf.getClassLoader(), new Class<?>[] {intf}, invocationHandler));
+    InvocationHandler invocationHandler;
+    if (rmiSupported) {
+      invocationHandler = new HasRpcSupport$RmiInvocationHandler(rpc, interfaces, instanceId);
+    } else {
+      invocationHandler = new HasRpcSupport$SimpleInvocationHandler(rpc);
+    }
+
+    return Proxy.newProxyInstance(interfaces[0].getClassLoader(), interfaces, invocationHandler);
   }
 
 }
 
 
+/** Representation of a RPC call failure exception. */
 @SuppressWarnings("serial")
 class RpcCallException extends Exception {
   public RpcCallException(String message) {
@@ -211,6 +252,109 @@ final class HasRpcSupport$SimpleInvocationHandler extends HasRpcSupport$Invocati
       return TypeConversion.castList((List<?>) result, method.getGenericReturnType());
     }
     return TypeConversion.cast(result, returnType);
+  }
+
+}
+
+
+@RequiredArgsConstructor
+class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler {
+
+  private final HasRpcSupport rpc;
+  private final Class<?>[] interfaces;
+  private final String instanceId;
+
+  @Override
+  Object dispatch(Method method, Object[] args) throws IOException, RpcCallException {
+
+    if (method.getDeclaringClass() == RmiStub.class) {
+      if (method.getName().equals("$getId")) {
+        return instanceId;
+      }
+    }
+
+    if (interfaces.length > 1 && method.getName().equals("toString")
+        && (args == null || args.length == 0)) {
+      return Stream.of(interfaces).filter(c -> c != RmiStub.class).map(Class::getSimpleName)
+          .collect(Collectors.joining("&"));
+    }
+
+    JsonObject invocation = Json.createObject();
+
+    String arguments = null;
+    if (args != null && args.length > 0) {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      try (ObjectOutputStream oos = new ObjectOutputStream(baos) {
+        {
+          enableReplaceObject(true);
+        }
+
+        @Override
+        protected Object replaceObject(Object obj) throws IOException {
+          if (obj instanceof RmiStub) {
+            return new RmiStubReplacement(((RmiStub) obj).$getId());
+          }
+          return obj;
+        }
+      }) {
+        oos.writeObject(args);
+      }
+      arguments = Base64.getEncoder().encodeToString(baos.toByteArray());
+    }
+
+    Class<?>[] parameterTypes = method.getParameterTypes();
+    JsonArray signature = Json.createArray();
+    for (int i = 0; i < parameterTypes.length; i++) {
+      signature.set(i, Json.create(parameterTypes[i].getName()));
+    }
+
+    if (instanceId != null) {
+      invocation.put(RmiConstants.RMI_INSTANCE_ID, instanceId);
+      invocation.put(RmiConstants.RMI_CLASS_NAME, method.getDeclaringClass().getName());
+    }
+
+    invocation.put(RmiConstants.RMI_METHOD_NAME, method.getName());
+    invocation.put(RmiConstants.RMI_METHOD_SIGNATURE, signature);
+    if (arguments != null) {
+      invocation.put(RmiConstants.RMI_METHOD_ARGUMENTS, arguments);
+    }
+
+    try {
+      return call(rpc, RmiCallable.RMI_CALL_METHOD, invocation);
+    } catch (RpcException e) {
+      throw e;
+    } catch (RpcCallException e) {
+      throw new RpcException(method.getName(), args, e.getMessage());
+    } catch (Exception e) {
+      throw new RpcException(method.getName(), args, e);
+    }
+  }
+
+  @Override
+  Object convertResult(Object result, Method method, Class<?> returnType)
+      throws IOException, ClassCastException, ClassNotFoundException {
+    if (JsonCodec.canEncodeWithoutTypeInfo(returnType)) {
+      return TypeConversion.cast(result, returnType);
+    }
+
+    JsonObject res = (JsonObject) TypeConversion.cast(result, JsonObject.class);
+    try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(
+        Base64.getDecoder().decode(res.getString(RmiConstants.RMI_RESPONSE_DATA)))) {
+      {
+        enableResolveObject(true);
+      }
+
+      @Override
+      protected Object resolveObject(Object obj) throws IOException {
+        if (obj instanceof RmiRemoteReplacement) {
+          return ((RmiRemoteReplacement) obj).createStub(rpc);
+        }
+        return obj;
+      }
+    }) {
+      result = ois.readObject();
+    }
+    return result;
   }
 
 }
