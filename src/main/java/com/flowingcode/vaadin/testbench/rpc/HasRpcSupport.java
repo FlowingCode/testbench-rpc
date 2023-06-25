@@ -24,6 +24,7 @@ import com.vaadin.testbench.HasDriver;
 import elemental.json.JsonObject;
 import elemental.json.JsonValue;
 import elemental.json.impl.JsonUtil;
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -74,8 +75,8 @@ class HasRpcSupport$companion {
       }
     }
 
-    return intf.cast(Proxy.newProxyInstance(intf.getClassLoader(), new Class<?>[] {intf},
-        new HasRpcSupport$InvocationHandler(rpc)));
+    InvocationHandler invocationHandler = new HasRpcSupport$SimpleInvocationHandler(rpc);
+    return intf.cast(Proxy.newProxyInstance(intf.getClassLoader(), new Class<?>[] {intf}, invocationHandler));
   }
 
 }
@@ -89,10 +90,7 @@ class RpcCallException extends Exception {
 }
 
 
-@RequiredArgsConstructor
-class HasRpcSupport$InvocationHandler implements InvocationHandler {
-
-  private final HasRpcSupport rpc;
+abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
 
   /**
    * Call a {@link ClientCallable} defined on the integration view.
@@ -160,15 +158,15 @@ class HasRpcSupport$InvocationHandler implements InvocationHandler {
     return result.get("result");
   }
 
+
+  abstract Object dispatch(Method method, Object[] args) throws Exception;
+
+  abstract Object convertResult(Object result, Method method, Class<?> returnType) throws Exception;
+
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
-      Object result;
-      try {
-        result = call(rpc, method.getName(), args);
-      } catch (RpcCallException e) {
-        throw new RpcException(method.getName(), args, e.getMessage());
-      }
+      Object result = dispatch(method, args);
 
       Class<?> returnType = method.getReturnType();
 
@@ -183,17 +181,36 @@ class HasRpcSupport$InvocationHandler implements InvocationHandler {
         returnType = ClassUtils.primitiveToWrapper(method.getReturnType());
       }
 
-      if (returnType == JsonArrayList.class) {
-        return TypeConversion.castList((List<?>) result, method.getGenericReturnType());
-      }
-
-      return TypeConversion.cast(result, returnType);
-
+      return convertResult(result, method, returnType);
     } catch (RpcException e) {
       throw e;
+    } catch (RpcCallException e) {
+      throw new RpcException(method.getName(), args, e.getMessage());
     } catch (Exception e) {
       throw new RpcException(method.getName(), args, e);
     }
+  }
+
+}
+
+
+@RequiredArgsConstructor
+final class HasRpcSupport$SimpleInvocationHandler extends HasRpcSupport$InvocationHandler {
+
+  private final HasRpcSupport rpc;
+
+  @Override
+  Object dispatch(Method method, Object[] args) throws RpcCallException {
+    return call(rpc, method.getName(), args);
+  }
+
+  @Override
+  Object convertResult(Object result, Method method, Class<?> returnType)
+      throws IOException, ClassCastException {
+    if (returnType == JsonArrayList.class) {
+      return TypeConversion.castList((List<?>) result, method.getGenericReturnType());
+    }
+    return TypeConversion.cast(result, returnType);
   }
 
 }
