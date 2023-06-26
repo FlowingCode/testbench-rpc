@@ -182,7 +182,6 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
 
     script.append("var raw = arguments[2];");
     script.append("arguments[1] = arguments[1].map((arg,i)=>raw[i]?arg:JSON.parse(arg));");
-    script.append("debugger;");
     script.append("callable.call(view.$server, ...arguments[1])");
     script.append(" .then(result=>callback({result}))");
     script.append(" .catch(e=>callback({message : e.message || ''}));");
