@@ -37,6 +37,10 @@ public class RpcException extends RuntimeException {
     super(makeMessage(method, arguments, cause.getMessage()), cause);
   }
 
+  public RpcException(String method, Object[] arguments, String message, Throwable cause) {
+    super(makeMessage(method, arguments, message), cause);
+  }
+
   private static String makeMessage(String method, Object[] arguments, String message) {
     return String.format(
         "%s(%s) RPC call failed%s",

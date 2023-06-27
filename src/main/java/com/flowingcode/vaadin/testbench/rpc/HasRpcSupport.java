@@ -20,7 +20,6 @@
 package com.flowingcode.vaadin.testbench.rpc;
 
 import com.vaadin.flow.component.ClientCallable;
-import com.vaadin.flow.internal.JsonCodec;
 import com.vaadin.testbench.HasDriver;
 import elemental.json.Json;
 import elemental.json.JsonArray;
@@ -128,6 +127,9 @@ class RpcCallException extends Exception {
   public RpcCallException(String message) {
     super(message);
   }
+  public RpcCallException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }
 
 
@@ -204,17 +206,13 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
   abstract Object convertResult(Object result, Method method, Class<?> returnType) throws Exception;
 
   @Override
-  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+  public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
       Object result = dispatch(method, args);
 
       Class<?> returnType = method.getReturnType();
 
-      if (returnType == Void.TYPE) {
-        return null;
-      }
-
-      if (returnType.isPrimitive()) {
+      if (returnType != Void.TYPE && returnType.isPrimitive()) {
         if (result == null) {
           throw new ClassCastException("Cannot cast null as " + returnType);
         }
@@ -225,7 +223,11 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
     } catch (RpcException e) {
       throw e;
     } catch (RpcCallException e) {
-      throw new RpcException(method.getName(), args, e.getMessage());
+      if (e.getCause() != null) {
+        throw new RpcException(method.getName(), args, e.getMessage(), e.getCause());
+      } else {
+        throw new RpcException(method.getName(), args, e.getMessage());
+      }
     } catch (Exception e) {
       throw new RpcException(method.getName(), args, e);
     }
@@ -249,6 +251,9 @@ final class HasRpcSupport$SimpleInvocationHandler extends HasRpcSupport$Invocati
       throws IOException, ClassCastException {
     if (returnType == JsonArrayList.class) {
       return TypeConversion.castList((List<?>) result, method.getGenericReturnType());
+    }
+    if (returnType == Void.TYPE) {
+      return null;
     }
     return TypeConversion.cast(result, returnType);
   }
@@ -318,27 +323,41 @@ class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler
       invocation.put(RmiConstants.RMI_METHOD_ARGUMENTS, arguments);
     }
 
-    try {
-      return call(rpc, RmiCallable.RMI_CALL_METHOD, invocation);
-    } catch (RpcException e) {
-      throw e;
-    } catch (RpcCallException e) {
-      throw new RpcException(method.getName(), args, e.getMessage());
-    } catch (Exception e) {
-      throw new RpcException(method.getName(), args, e);
-    }
+    return call(rpc, RmiCallable.RMI_CALL_METHOD, invocation);
   }
 
   @Override
   Object convertResult(Object result, Method method, Class<?> returnType)
-      throws IOException, ClassCastException, ClassNotFoundException {
-    if (JsonCodec.canEncodeWithoutTypeInfo(returnType)) {
-      return TypeConversion.cast(result, returnType);
+      throws IOException, ClassCastException, ClassNotFoundException, RpcCallException {
+    if (result == null && returnType == Void.TYPE) {
+      return null;
     }
 
-    JsonObject res = (JsonObject) TypeConversion.cast(result, JsonObject.class);
+    if (result instanceof Map) {
+      @SuppressWarnings("unchecked")
+      Map<String, Object> map = (Map<String, Object>) result;
+      if (map.containsKey(RmiConstants.RMI_RESPONSE_MARKER)
+          && map.get(RmiConstants.RMI_RESPONSE_MARKER).equals(RmiCallable.class.getName())) {
+
+        if (map.containsKey(RmiConstants.RMI_RESPONSE_ERROR)) {
+          RmiError err = RmiError.valueOf((String) map.get(RmiConstants.RMI_RESPONSE_ERROR));
+          if (err.hasException()) {
+            throw new RpcCallException(err.name(), (Throwable) unmarshal(map));
+          } else {
+            throw new RpcCallException(err.name());
+          }
+        } else {
+          return unmarshal(map);
+        }
+      }
+    }
+
+    return TypeConversion.cast(result, returnType);
+  }
+
+  private Object unmarshal(Map<String, Object> res) throws IOException, ClassNotFoundException {
     try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(
-        Base64.getDecoder().decode(res.getString(RmiConstants.RMI_RESPONSE_DATA)))) {
+        Base64.getDecoder().decode((String) res.get(RmiConstants.RMI_RESPONSE_DATA)))) {
       {
         enableResolveObject(true);
       }
@@ -351,9 +370,8 @@ class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler
         return obj;
       }
     }) {
-      result = ois.readObject();
+      return ois.readObject();
     }
-    return result;
   }
 
 }

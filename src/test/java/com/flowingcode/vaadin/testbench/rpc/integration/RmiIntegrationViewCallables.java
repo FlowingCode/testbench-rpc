@@ -33,6 +33,8 @@ public interface RmiIntegrationViewCallables extends RmiCallable {
 
   void testCallableFailure();
 
+  JsonObject testFailureJsonObject();
+
   long testLong(long arg);
 
   interface AnotherInterface {
