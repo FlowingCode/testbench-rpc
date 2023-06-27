@@ -58,6 +58,11 @@ public class RmiIntegrationView extends Div implements RmiIntegrationViewCallabl
   }
 
   @Override
+  public JsonObject testFailureJsonObject() {
+    throw new RuntimeException();
+  }
+
+  @Override
   @ClientCallable
   public JsonValue $call(JsonObject invocation) {
     return RmiIntegrationViewCallables.super.$call(invocation);

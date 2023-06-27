@@ -28,10 +28,14 @@ import elemental.json.JsonObject;
 import elemental.json.JsonValue;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Base64;
 
 /**
@@ -52,40 +56,85 @@ public interface RmiCallable {
    */
   @ClientCallable
   default JsonValue $call(JsonObject invocation) {
-    String id, className;
-
-    if (invocation.hasKey(RmiConstants.RMI_INSTANCE_ID)) {
-      id = invocation.getString(RmiConstants.RMI_INSTANCE_ID);
-      className = invocation.getString(RmiConstants.RMI_CLASS_NAME);
-    } else {
-      id = null;
-      className = null;
-    }
-
-    String methodName = invocation.getString(RmiConstants.RMI_METHOD_NAME);
-    JsonArray signatureFromClient = invocation.getArray(RmiConstants.RMI_METHOD_SIGNATURE);
-
-    String argumentsFromClient = invocation.hasKey(RmiConstants.RMI_METHOD_ARGUMENTS)
-        ? invocation.getString(RmiConstants.RMI_METHOD_ARGUMENTS)
-        : null;
 
     RmiObjectRegistry registry = RmiObjectRegistry.getInstance((Component) this);
 
-    Class<?>[] signature = new Class<?>[signatureFromClient.length()];
+    String id, className, methodName, argumentsFromClient;
+    JsonArray signatureFromClient;
+
     try {
-      for (int i = 0; i < signatureFromClient.length(); i++) {
-        signature[i] = RmiCallable$companion.classForName(signatureFromClient.getString(i));
+
+      try {
+        if (invocation.hasKey(RmiConstants.RMI_INSTANCE_ID)) {
+          id = invocation.getString(RmiConstants.RMI_INSTANCE_ID);
+        } else {
+          id = null;
+        }
+
+        if (invocation.hasKey(RmiConstants.RMI_CLASS_NAME)) {
+          className = invocation.getString(RmiConstants.RMI_CLASS_NAME);
+          if (id == null) {
+            throw new IllegalArgumentException();
+          }
+        } else {
+          className = null;
+          if (id != null) {
+            throw new IllegalArgumentException();
+          }
+        }
+
+        methodName = invocation.getString(RmiConstants.RMI_METHOD_NAME);
+        signatureFromClient = invocation.getArray(RmiConstants.RMI_METHOD_SIGNATURE);
+
+        argumentsFromClient = invocation.hasKey(RmiConstants.RMI_METHOD_ARGUMENTS)
+            ? invocation.getString(RmiConstants.RMI_METHOD_ARGUMENTS)
+            : null;
+      } catch (Exception e) {
+        return RmiCallable$companion.createException(RmiError.E_PROTOCOL_ERROR, e);
       }
 
-      Class<?> clazz = className == null ? getClass() : Class.forName(className);
-      Method method = clazz.getMethod(methodName, signature);
+      Class<?>[] signature = new Class<?>[signatureFromClient.length()];
 
-      Object instance = id == null ? this : clazz.cast(registry.lookup(id));
+      Class<?> clazz;
+      try {
+        clazz = className == null ? getClass() : Class.forName(className);
+      } catch (ClassNotFoundException e) {
+        return RmiCallable$companion.createException(RmiError.E_CLASS_NOT_FOUND);
+      }
+
+      Method method;
+      try {
+        for (int i = 0; i < signatureFromClient.length(); i++) {
+          signature[i] = RmiCallable$companion.classForName(signatureFromClient.getString(i));
+        }
+        method = clazz.getMethod(methodName, signature);
+      } catch (ClassNotFoundException | NoSuchMethodException e) {
+        return RmiCallable$companion.createException(RmiError.E_NO_SUCH_METHOD);
+      }
+
+      Object instance;
+      if (id == null) {
+        instance = this;
+      } else {
+        try {
+          instance = registry.lookup(id);
+        } catch (RpcException e) {
+          return RmiCallable$companion.createException(RmiError.E_OBJECT_NOT_EXIST);
+        }
+        clazz.cast(instance);
+      }
 
       Object[] args = null;
       if (argumentsFromClient != null) {
+        byte[] decoded;
+        try {
+          decoded = Base64.getDecoder().decode(argumentsFromClient);
+        } catch (IllegalArgumentException e) {
+          return RmiCallable$companion.createException(RmiError.E_UNMARSHAL, e);
+        }
+
         try (ObjectInputStream ois = new ObjectInputStream(
-            new ByteArrayInputStream(Base64.getDecoder().decode(argumentsFromClient))) {
+            new ByteArrayInputStream(decoded)) {
           {
             enableResolveObject(true);
           }
@@ -99,10 +148,17 @@ public interface RmiCallable {
           }
         }) {
           args = (Object[]) ois.readObject();
+        } catch (IOException e) {
+          return RmiCallable$companion.createException(RmiError.E_UNMARSHAL, e);
         }
       }
 
-      Object result = method.invoke(instance, args);
+      Object result;
+      try {
+        result = method.invoke(instance, args);
+      } catch (InvocationTargetException e) {
+        return RmiCallable$companion.createException(RmiError.E_INVOKE, e.getCause());
+      }
 
       if (result == null || JsonCodec.canEncodeWithoutTypeInfo(result.getClass())) {
         return JsonCodec.encodeWithTypeInfo(result);
@@ -113,36 +169,18 @@ public interface RmiCallable {
         result = registry.lookup(resultId);
       }
 
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      try (ObjectOutputStream oos = new ObjectOutputStream(baos) {
-        {
-          enableReplaceObject(true);
-        }
-
-        @Override
-        protected Object replaceObject(Object obj) throws java.io.IOException {
-          if (obj instanceof Component) {
-            throw new NotSerializableException(
-                "Serializing component classes is not supported by TestBench-RPC");
-          }
-          if (obj instanceof RmiRemote) {
-            String id = registry.register((RmiRemote) obj);
-            return new RmiRemoteReplacement(registry, id);
-          }
-          return obj;
-        }
-      }) {
-        oos.writeObject(result);
+      try {
+        return RmiCallable$companion.createResponse(registry, result);
+      } catch (ObjectStreamException e) {
+        return RmiCallable$companion.createException(RmiError.E_MARSHAL, e);
       }
 
-      String encoded = Base64.getEncoder().encodeToString(baos.toByteArray());
-      JsonObject jsonResult = Json.createObject();
-      jsonResult.put(RmiConstants.RMI_RESPONSE_MARKER, RmiCallable.class.getName());
-      jsonResult.put(RmiConstants.RMI_RESPONSE_DATA, encoded);
-      return jsonResult;
-
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      try {
+        return RmiCallable$companion.createException(RmiError.E_UNKNOWN, e);
+      } catch (IOException e1) {
+        throw new UndeclaredThrowableException(e);
+      }
     }
   }
 
@@ -150,6 +188,56 @@ public interface RmiCallable {
 
 
 class RmiCallable$companion {
+
+  private static String encode(RmiObjectRegistry registry, Object result) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oos = new ObjectOutputStream(baos) {
+      {
+        enableReplaceObject(true);
+      }
+
+      @Override
+      protected Object replaceObject(Object obj) throws java.io.IOException {
+        if (obj instanceof Component) {
+          throw new NotSerializableException(
+              "Serializing component classes is not supported by TestBench-RPC");
+        }
+        if (obj instanceof RmiRemote) {
+          String id = registry.register((RmiRemote) obj);
+          return new RmiRemoteReplacement(registry, id);
+        }
+        return obj;
+      }
+    }) {
+      oos.writeObject(result);
+    }
+
+    return Base64.getEncoder().encodeToString(baos.toByteArray());
+  }
+
+  static JsonObject createResponse(RmiObjectRegistry registry, Object result) throws IOException {
+    JsonObject jsonResult = Json.createObject();
+    jsonResult.put(RmiConstants.RMI_RESPONSE_MARKER, RmiCallable.class.getName());
+    jsonResult.put(RmiConstants.RMI_RESPONSE_DATA, encode(registry, result));
+    return jsonResult;
+  }
+
+  static JsonObject createException(RmiError error) throws IOException {
+    return createException(error, null);
+  }
+
+  static JsonObject createException(RmiError error, Throwable t) throws IOException {
+    if (error.hasException() ^ (t != null)) {
+      throw new IllegalArgumentException();
+    }
+    JsonObject jsonResult = Json.createObject();
+    jsonResult.put(RmiConstants.RMI_RESPONSE_MARKER, RmiCallable.class.getName());
+    jsonResult.put(RmiConstants.RMI_RESPONSE_ERROR, error.name());
+    if (t != null) {
+      jsonResult.put(RmiConstants.RMI_RESPONSE_DATA, encode(null, t));
+    }
+    return jsonResult;
+  }
 
   /** Class.forName, with support for primitive types. */
   static Class<?> classForName(String className) throws ClassNotFoundException {

@@ -19,6 +19,7 @@
  */
 package com.flowingcode.vaadin.testbench.rpc.integration;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import com.flowingcode.vaadin.testbench.rpc.AbstractViewTest;
 import com.flowingcode.vaadin.testbench.rpc.HasRpcSupport;
@@ -32,6 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.function.ThrowingRunnable;
 import org.junit.runners.MethodSorters;
 
 
@@ -50,16 +52,39 @@ public class RmiIntegrationViewIT extends AbstractViewTest implements HasRpcSupp
     $server.testCallableSuccess();
   }
 
+  private Throwable thrownException;
+
+  private ThrowingRunnable throwing(ThrowingRunnable runnable) {
+    thrownException = null;
+    return () -> {
+      try {
+        runnable.run();
+      } catch (Exception e) {
+        thrownException = e;
+        throw e;
+      }
+    };
+  }
+
   @Test
   public void test02_CallableFailure() {
     // test that the RMI callable mechanism detect failures
-    assertThrows(RpcException.class, () -> $server.testCallableFailure());
+    assertThrows(RpcException.class, throwing(() -> $server.testCallableFailure()));
+    assertEquals("testCallableFailure() RPC call failed: E_INVOKE", thrownException.getMessage());
+  }
+
+  @Test
+  public void test02_CallableFailureJsonObject() {
+    // test that the RMI callable mechanism detect failures in a method that return JsonObject
+    assertThrows(RpcException.class, throwing(() -> $server.testFailureJsonObject()));
+    assertEquals("testFailureJsonObject() RPC call failed: E_INVOKE", thrownException.getMessage());
   }
 
   @Test
   public void test02_ReturnComponentFailure() {
     // test that the RMI callable mechanism detect failures when attempting to return a Component
-    assertThrows(RpcException.class, () -> $server.returnComponent());
+    assertThrows(RpcException.class, throwing(() -> $server.returnComponent()));
+    assertEquals("returnComponent() RPC call failed: E_MARSHAL", thrownException.getMessage());
   }
 
   @Test

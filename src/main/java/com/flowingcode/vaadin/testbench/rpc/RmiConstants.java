@@ -43,8 +43,13 @@ class RmiConstants {
   /** Arguments of the invoked method. */
   static final String RMI_METHOD_ARGUMENTS = "methodArguments";
 
+  /** Marker indicating that a JsonObject is a RMI response. */
   static final String RMI_RESPONSE_MARKER = "marker";
 
+  /** Response data. */
   static final String RMI_RESPONSE_DATA = "data";
+
+  /** Response error code. */
+  static final String RMI_RESPONSE_ERROR = "error";
 
 }
