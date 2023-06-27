@@ -26,6 +26,7 @@ import com.flowingcode.vaadin.testbench.rpc.RpcException;
 import com.flowingcode.vaadin.testbench.rpc.integration.RmiIntegrationViewCallables.ICounter;
 import com.flowingcode.vaadin.testbench.rpc.integration.RmiIntegrationViewCallables.Identity;
 import com.flowingcode.vaadin.testbench.rpc.integration.RmiIntegrationViewCallables.MyRemoteObject;
+import elemental.json.JsonObject;
 import java.io.Serializable;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
@@ -151,6 +152,14 @@ public class RmiIntegrationViewIT extends AbstractViewTest implements HasRpcSupp
   public void test10_testLong() {
     // test passing and returning a primitive long
     Assert.assertEquals(42L, $server.testLong(42));
+  }
+
+  @Test
+  public void test10_testJsonObject() {
+    // test passing and returning a JsonObject
+    String k = "key", v = "hello";
+    JsonObject obj = $server.returnJsonObject(k, v);
+    Assert.assertEquals(v, obj.getString(k));
   }
 
   @Test

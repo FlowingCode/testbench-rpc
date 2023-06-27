@@ -22,6 +22,7 @@ package com.flowingcode.vaadin.testbench.rpc.integration;
 import com.flowingcode.vaadin.testbench.rpc.RmiCallable;
 import com.flowingcode.vaadin.testbench.rpc.RmiRemote;
 import com.vaadin.flow.component.Component;
+import elemental.json.JsonObject;
 import java.io.Serializable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -77,5 +78,7 @@ public interface RmiIntegrationViewCallables extends RmiCallable {
   <T extends RmiRemote> Wrapper<T> wrap(T remote);
 
   Wrapper<ICounter> createWrappedCounter(String name);
+
+  JsonObject returnJsonObject(String key, String value);
 
 }

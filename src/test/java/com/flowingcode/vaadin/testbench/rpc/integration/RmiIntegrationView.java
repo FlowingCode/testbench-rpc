@@ -24,6 +24,7 @@ import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.Route;
+import elemental.json.Json;
 import elemental.json.JsonObject;
 import elemental.json.JsonValue;
 import java.io.Serializable;
@@ -142,4 +143,10 @@ public class RmiIntegrationView extends Div implements RmiIntegrationViewCallabl
     return new Wrapper<>(getCounter(name));
   }
 
+  @Override
+  public JsonObject returnJsonObject(String key, String value) {
+    JsonObject obj = Json.createObject();
+    obj.put(key, value);
+    return obj;
+  }
 }
