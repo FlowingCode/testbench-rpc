@@ -40,13 +40,13 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ClassUtils;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
 
 /**
  * Provides support for Remote Procedure Calls (RPC) using TestBench.
@@ -54,6 +54,19 @@ import org.openqa.selenium.WebDriver;
  * @author Javier Godoy / Flowing Code
  */
 public interface HasRpcSupport extends HasDriver {
+
+  /**
+   * Sets the amount of time to wait for an asynchronous script to finish execution before throwing
+   * an error. If the timeout is negative, then the script will be allowed to run indefinitely.
+   *
+   * @param timeoutMillis The timeout value in milliseconds.
+   */
+  default void setScriptTimeout(long timeoutMillis) {
+    if (timeoutMillis < 0) {
+      timeoutMillis = (long) 9e15;
+    }
+    getDriver().manage().timeouts().setScriptTimeout(timeoutMillis, TimeUnit.MILLISECONDS);
+  }
 
   /**
    * Create a TestBench proxy that invokes methods from the interface through a client call.
@@ -140,9 +153,8 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
    *
    * @param callable the client callable name
    * @param arguments arguments to be passed to the callable
-   * @throws TimeoutException if the callable times out (see {@link
-   *     WebDriver.Timeouts#setScriptTimeout(long, java.util.concurrent.TimeUnit)
-   *     WebDriver.Timeouts}).
+   * @throws TimeoutException if the callable times out (see
+   *         {@link HasRpcSupport#setScriptTimeout(long)})
    * @throws RuntimeException if the callable fails.
    */
   static Object call(HasRpcSupport rpc, String callable, Object... arguments)
