@@ -144,7 +144,7 @@ In TestBench side, the `JsonArrayList` will implement `Collection<T>`, which fac
 ```
 
 
-### Remote Method Invocation
+## Remote Method Invocation
 
 RPC for Vaadin TestBench provides an enhanced RMI-style mechanism that allows the test code to transparently invoke methods on a server-side object, as if the object were local. 
 The mechanism also enables the test environment to manipulate the server-side instances. This means that the test scripts can change the state of the server-side components, modify their properties, or simulate different scenarios to test the behavior of the application. (Note: this mechanism follows RMI semantics, but it's not an implementation of Java RMI.)
