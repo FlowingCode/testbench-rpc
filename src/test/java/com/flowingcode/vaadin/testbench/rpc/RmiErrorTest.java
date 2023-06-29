@@ -28,6 +28,7 @@ import static com.flowingcode.vaadin.testbench.rpc.RmiConstants.RMI_RESPONSE_DAT
 import static com.flowingcode.vaadin.testbench.rpc.RmiConstants.RMI_RESPONSE_ERROR;
 import static com.flowingcode.vaadin.testbench.rpc.RmiConstants.RMI_RESPONSE_MARKER;
 import static org.hamcrest.MatcherAssert.assertThat;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import elemental.json.Json;
 import elemental.json.JsonArray;
@@ -38,6 +39,7 @@ import elemental.json.JsonValue;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -46,6 +48,7 @@ import java.util.Base64;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.With;
+import org.apache.commons.compress.utils.IOUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -60,7 +63,7 @@ public class RmiErrorTest {
 
 
   @SuppressWarnings("unused")
-  private static class RmiCallableTest extends Div implements RmiCallable {
+  public static class RmiCallableTest extends Div implements RmiCallable {
     public RmiRemote method() {
       return null;
     }
@@ -82,6 +85,24 @@ public class RmiErrorTest {
         Object notSerializable = new Object() {};
       };
     }
+
+    public void testRemote(MyRemote arg1, MySerializable arg2) {
+
+    }
+
+    public void testRemote(MySerializable arg2) {
+
+    }
+
+  }
+
+  public static interface MyRemote extends RmiRemote {
+  }
+
+  public static class MyRemoteImpl implements MyRemote {
+  }
+
+  public static class MySerializable implements Serializable {
   }
 
   private Matcher<JsonValue> hasMarker() {
@@ -148,7 +169,7 @@ public class RmiErrorTest {
     Object[] methodArguments;
     String rawMethodArguments;
 
-    JsonValue call() {
+    JsonValue call(RmiCallable callable) {
       JsonObject obj = Json.createObject();
       if (instanceId != null) {
         obj.put(RMI_INSTANCE_ID, instanceId);
@@ -184,8 +205,11 @@ public class RmiErrorTest {
         obj.put(RMI_METHOD_ARGUMENTS, Base64.getEncoder().encodeToString(baos.toByteArray()));
       }
 
+      return callable.$call(obj);
+    }
 
-      return new RmiCallableTest() {}.$call(obj);
+    JsonValue call() {
+      return call(new RmiCallableTest() {});
     }
   }
 
@@ -314,4 +338,74 @@ public class RmiErrorTest {
     assertThat(response, hasError(RmiError.E_MARSHAL));
   }
 
+
+
+  private static ClassLoader CUSTOM_CLASSLOADER = new ClassLoader() {
+    @Override
+    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+      if (name.endsWith("$MySerializable") || name.endsWith("$MyRemoteImpl")
+          || name.endsWith("$RmiCallableTest") || name.endsWith("$MyRemote")) {
+        Class<?> c = findLoadedClass(name);
+        if (c == null) {
+          InputStream in = getResourceAsStream(name.replace('.', '/') + ".class");
+          byte[] b;
+          try {
+            b = IOUtils.toByteArray(in);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+          c = defineClass(name, b, 0, b.length);
+        }
+        if (resolve) {
+          resolveClass(c);
+        }
+        return c;
+      } else {
+        return super.loadClass(name, resolve);
+      }
+    }
+  };
+
+  private static Object newInstance(Class<?> clazz) throws Exception {
+    return Class.forName(clazz.getName(), true, CUSTOM_CLASSLOADER).newInstance();
+  }
+
+  @Test
+  public void test09_CustomClassLoader() throws Exception {
+    // https://github.com/FlowingCode/testbench-rpc/issues/17
+    // both callable and remote are loaded by a custom class loader
+    RmiCallable callable = (RmiCallable) newInstance(RmiCallableTest.class);
+    RmiObjectRegistry registry = RmiObjectRegistry.getInstance((Component)callable);
+    String instanceId = registry.register((RmiRemote) newInstance(MyRemoteImpl.class));
+
+    String[] signature = new String[] {MyRemote.class.getName(), MySerializable.class.getName()};
+    Object[] args = new Object[] {new RmiStubReplacement(instanceId), new MySerializable()};
+
+    JsonValue response = new Request().withMethodName("testRemote")
+        .withMethodSignature(signature)
+        .withMethodArguments(args)
+        .call(callable);
+
+    assertThat(response, Matchers.instanceOf(JsonNull.class));
+  }
+
+  @Test
+  public void test09_ClassLoaderMismatch() throws Exception {
+    // callable is loaded by the bootstrap classloader
+    // remote instance is loaded by a custom class loader
+    RmiCallable callable = new RmiCallableTest();
+    RmiObjectRegistry registry = RmiObjectRegistry.getInstance((Component)callable);
+    String instanceId = registry.register((RmiRemote) newInstance(MyRemoteImpl.class));
+
+    String[] signature = new String[] {MyRemote.class.getName(), MySerializable.class.getName()};
+    Object[] args = new Object[] {new RmiStubReplacement(instanceId), new MySerializable()};
+
+    JsonValue response = new Request().withMethodName("testRemote")
+        .withMethodSignature(signature)
+        .withMethodArguments(args)
+        .call(callable);
+
+    assertThat(response, hasMarker());
+    assertThat(response, hasError(RmiError.E_UNKNOWN));
+  }
 }
