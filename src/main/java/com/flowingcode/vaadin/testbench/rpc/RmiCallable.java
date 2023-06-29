@@ -172,11 +172,6 @@ public interface RmiCallable {
         return JsonCodec.encodeWithTypeInfo(result);
       }
 
-      if (result instanceof RmiRemote) {
-        String resultId = registry.register((RmiRemote) result);
-        result = registry.lookup(resultId);
-      }
-
       try {
         return RmiCallable$companion.createResponse(registry, result);
       } catch (ObjectStreamException e) {
