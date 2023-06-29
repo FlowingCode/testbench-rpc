@@ -105,7 +105,8 @@ public interface RmiCallable {
       Method method;
       try {
         for (int i = 0; i < signatureFromClient.length(); i++) {
-          signature[i] = RmiCallable$companion.classForName(signatureFromClient.getString(i));
+          String argClassName = signatureFromClient.getString(i);
+          signature[i] = RmiCallable$companion.classForName(argClassName, clazz);
         }
         method = clazz.getMethod(methodName, signature);
       } catch (ClassNotFoundException | NoSuchMethodException e) {
@@ -146,6 +147,13 @@ public interface RmiCallable {
             }
             return obj;
           }
+
+          @Override
+          protected java.lang.Class<?> resolveClass(java.io.ObjectStreamClass desc)
+              throws ClassNotFoundException, IOException {
+            return RmiCallable$companion.classForName(desc.getName(), clazz);
+          }
+
         }) {
           args = (Object[]) ois.readObject();
         } catch (IOException e) {
@@ -240,7 +248,7 @@ class RmiCallable$companion {
   }
 
   /** Class.forName, with support for primitive types. */
-  static Class<?> classForName(String className) throws ClassNotFoundException {
+  static Class<?> classForName(String className, Class<?> caller) throws ClassNotFoundException {
     switch (className) {
       case "byte":
         return byte.class;
@@ -257,6 +265,10 @@ class RmiCallable$companion {
       case "double":
         return double.class;
     }
-    return Class.forName(className);
+    if (className.equals(RmiStubReplacement.class.getName())) {
+      return RmiStubReplacement.class;
+    } else {
+      return Class.forName(className, false, caller.getClassLoader());
+    }
   }
 }
