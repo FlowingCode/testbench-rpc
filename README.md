@@ -192,6 +192,7 @@ public class SampleView extends Div implements SampleCallables {
   
   public interface SampleCallables extends RmiCallable {
     MyRemoteObject createRemote(String name);
+    void receiveRemote(MyRemoteObject remote);
   }
 ```
 
@@ -202,14 +203,20 @@ public class SampleView extends Div implements SampleCallables {
   public MyRemoteObject createRemote(String name) {
     return new MyRemoteObjectImpl(name);
   }
+
+  @Override
+  public void receiveRemote(MyRemoteObject remote) {
+    // ...
+  }
 ```  
  
 5. In the test class, methods called on remote objects will execute in the server.
 
 ```
   @Test
-  public void testNotification() {
+  public void testRemoteObject() {
     MyRemoteObject remote = $server.createRemote("foo");
+    $server.receiveRemote(remote);
     assertEquals("foo", remote.getName());
   }
 ```  
