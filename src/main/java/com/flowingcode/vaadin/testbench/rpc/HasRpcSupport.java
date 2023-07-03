@@ -364,6 +364,10 @@ class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler
       }
     }
 
+    if (returnType == JsonArrayList.class) {
+      return TypeConversion.castList((List<?>) result, method.getGenericReturnType());
+    }
+
     return TypeConversion.cast(result, returnType);
   }
 
