@@ -53,6 +53,10 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
     super(IntegrationView.ROUTE);
   }
 
+  protected IntegrationViewIT(String route) {
+    super(route);
+  }
+
   IntegrationViewCallables $server = createCallableProxy(IntegrationViewCallables.class);
 
   @Test
