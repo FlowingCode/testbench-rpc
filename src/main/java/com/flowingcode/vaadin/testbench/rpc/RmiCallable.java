@@ -259,6 +259,8 @@ class RmiCallable$companion {
         return float.class;
       case "double":
         return double.class;
+      case "boolean":
+        return boolean.class;
     }
     if (className.equals(RmiStubReplacement.class.getName())) {
       return RmiStubReplacement.class;
