@@ -169,7 +169,7 @@ public interface RmiCallable {
       }
 
       if (result == null || JsonCodec.canEncodeWithoutTypeInfo(result.getClass())) {
-        return JsonCodec.encodeWithTypeInfo(result);
+        return JsonCodec.encodeWithoutTypeInfo(result);
       }
 
       try {
