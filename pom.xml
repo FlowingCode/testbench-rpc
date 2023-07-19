@@ -31,6 +31,14 @@
         </license>
     </licenses>
     
+    <developers>
+            <developer>
+            <id>flowingcode</id>
+            <organization>Flowing Code</organization>
+            <organizationUrl>https://www.flowingcode.com</organizationUrl>
+        </developer>
+    </developers>
+  
     <scm>
         <url>https://github.com/FlowingCode/testbench-rpc</url>
         <connection>scm:git:git://github.com/FlowingCode/testbench-rpc.git</connection>
@@ -408,5 +416,3 @@
                 
     </profiles>
 </project>
-
-
