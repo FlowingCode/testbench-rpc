@@ -170,7 +170,7 @@ public interface SampleCallables extends RmiCallable {
 }
 ```
 
-2. Override the `$call` method in the view class:
+2. Override the `$call` method in the view class and annotate it with `@ClientCallable` (this is a workaround for https://github.com/vaadin/flow/issues/17098):
 
 ```
 @Route("")
