@@ -4,7 +4,7 @@
 
     <groupId>com.flowingcode.vaadin.test</groupId>
     <artifactId>testbench-rpc</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>1.3.0-SNAPSHOT</version>
     <name>TestBenchRPC</name>
     <description>Remote procedure calls for Vaadin TestBench</description>
     <url>https://www.flowingcode.com/en/open-source/</url>
