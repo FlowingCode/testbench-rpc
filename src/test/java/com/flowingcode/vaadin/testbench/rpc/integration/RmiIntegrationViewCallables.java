@@ -21,13 +21,14 @@ package com.flowingcode.vaadin.testbench.rpc.integration;
 
 import com.flowingcode.vaadin.testbench.rpc.RmiCallable;
 import com.flowingcode.vaadin.testbench.rpc.RmiRemote;
+import com.flowingcode.vaadin.testbench.rpc.SideChannelSupport;
 import com.vaadin.flow.component.Component;
 import elemental.json.JsonObject;
 import java.io.Serializable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-public interface RmiIntegrationViewCallables extends RmiCallable {
+public interface RmiIntegrationViewCallables extends RmiCallable, SideChannelSupport {
 
   void testCallableSuccess();
 

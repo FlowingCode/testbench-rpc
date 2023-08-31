@@ -220,3 +220,22 @@ public class SampleView extends Div implements SampleCallables {
     assertEquals("foo", remote.getName());
   }
 ```  
+
+## Side-channel Invocation
+
+Side-channel invocation allows invoking methods (either by using RMI or client-callable RPC) from another view. 
+This feature is useful in cases where you want to expose methods from reusable views.
+
+In order to support side-channel invocations:
+
+1. Initialize the proxy by providing a URL. The url will be opened in a second tab, and calls to server methods will be dispatched from that tab. TestbenchRPC takes care of switching back to the original tab when the call completes. 
+```
+OtherCallables $server = createCallableProxy(OtherCallables.class, getURL("other"));
+```
+
+2. Optionally, implement `SideChannelSupport` in the callable interface. This interface adds a `closeSideChannel()` method to the proxy, which allows closing the side tab.
+```
+public interface OtherCallables extends SideChannelSupport { ... }
+```
+
+When using RMI, remember that stubs are UI-scoped. Closing the side channel will invalidate all of its stubs.

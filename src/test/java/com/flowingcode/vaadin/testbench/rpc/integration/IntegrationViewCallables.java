@@ -20,6 +20,7 @@
 package com.flowingcode.vaadin.testbench.rpc.integration;
 
 import com.flowingcode.vaadin.testbench.rpc.JsonArrayList;
+import com.flowingcode.vaadin.testbench.rpc.SideChannelSupport;
 import elemental.json.JsonArray;
 import elemental.json.JsonBoolean;
 import elemental.json.JsonNull;
@@ -28,7 +29,7 @@ import elemental.json.JsonObject;
 import elemental.json.JsonString;
 import elemental.json.JsonValue;
 
-public interface IntegrationViewCallables {
+public interface IntegrationViewCallables extends SideChannelSupport {
 
   void testCallableFailure();
 
