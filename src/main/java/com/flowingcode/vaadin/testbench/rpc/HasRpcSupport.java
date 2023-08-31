@@ -248,10 +248,13 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
 }
 
 
-@RequiredArgsConstructor
 final class HasRpcSupport$SimpleInvocationHandler extends HasRpcSupport$InvocationHandler {
 
   private final HasRpcSupport rpc;
+
+  public HasRpcSupport$SimpleInvocationHandler(HasRpcSupport rpc) {
+    this.rpc = rpc;
+  }
 
   @Override
   Object dispatch(Method method, Object[] args) throws RpcCallException {
@@ -273,12 +276,18 @@ final class HasRpcSupport$SimpleInvocationHandler extends HasRpcSupport$Invocati
 }
 
 
-@RequiredArgsConstructor
 class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler {
 
   private final HasRpcSupport rpc;
   private final Class<?>[] interfaces;
   private final String instanceId;
+
+  public HasRpcSupport$RmiInvocationHandler(HasRpcSupport rpc, Class<?>[] interfaces,
+      String instanceId) {
+    this.rpc = rpc;
+    this.interfaces = interfaces;
+    this.instanceId = instanceId;
+  }
 
   @Override
   Object dispatch(Method method, Object[] args) throws IOException, RpcCallException {
