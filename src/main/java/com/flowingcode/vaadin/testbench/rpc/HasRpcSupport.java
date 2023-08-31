@@ -40,6 +40,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -47,6 +48,8 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ClassUtils;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchWindowException;
+import org.openqa.selenium.WebDriver;
 
 /**
  * Provides support for Remote Procedure Calls (RPC) using TestBench.
@@ -75,11 +78,17 @@ public interface HasRpcSupport extends HasDriver {
     return HasRpcSupport$companion.createCallableProxy(this, intf);
   }
 
+  /**
+   * Create a TestBench proxy that invokes methods from the interface through a client call on a side channel.
+   */
+  default <T> T createCallableProxy(Class<T> intf, String url) {
+    return HasRpcSupport$companion.createCallableProxy(this, intf, url);
+  }
 
   @Deprecated
   default Object call(String callable, Object... arguments) {
     try {
-      return new HasRpcSupport$SimpleInvocationHandler(this).call(callable, arguments);
+      return new HasRpcSupport$SimpleInvocationHandler(this, null).call(callable, arguments);
     } catch (RpcCallException e) {
       throw new RpcException(callable, arguments, e.getMessage());
     }
@@ -103,10 +112,15 @@ class HasRpcSupport$companion {
   }
 
   static <T> T createCallableProxy(HasRpcSupport rpc, Class<T> intf) {
-    return intf.cast(createCallableProxy(rpc, new Class<?>[] {intf}, null));
+    return createCallableProxy(rpc, intf, null);
   }
 
-  static Object createCallableProxy(HasRpcSupport rpc, Class<?> interfaces[], String instanceId) {
+  static <T> T createCallableProxy(HasRpcSupport rpc, Class<T> intf, String sideChannelUrl) {
+    return intf.cast(createCallableProxy(rpc, new Class<?>[] {intf}, null, sideChannelUrl));
+  }
+
+  static Object createCallableProxy(HasRpcSupport rpc, Class<?> interfaces[], String instanceId,
+      String sideChannelUrl) {
     final boolean rmiSupported = isRmiSupported(interfaces, instanceId);
 
     for (Class<?> intf : interfaces) {
@@ -123,9 +137,9 @@ class HasRpcSupport$companion {
 
     InvocationHandler invocationHandler;
     if (rmiSupported) {
-      invocationHandler = new HasRpcSupport$RmiInvocationHandler(rpc, interfaces, instanceId);
+      invocationHandler = new HasRpcSupport$RmiInvocationHandler(rpc, interfaces, instanceId, sideChannelUrl);
     } else {
-      invocationHandler = new HasRpcSupport$SimpleInvocationHandler(rpc);
+      invocationHandler = new HasRpcSupport$SimpleInvocationHandler(rpc, sideChannelUrl);
     }
 
     return Proxy.newProxyInstance(interfaces[0].getClassLoader(), interfaces, invocationHandler);
@@ -150,6 +164,7 @@ class RpcCallException extends Exception {
 abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
 
   protected final HasRpcSupport rpc;
+  protected final String sideChannelUrl;
 
   /**
    * Call a {@link ClientCallable} defined on the integration view.
@@ -203,16 +218,61 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
     script.append(" .then(result=>callback({result}))");
     script.append(" .catch(e=>callback({message : e.message || ''}));");
 
-    @SuppressWarnings("unchecked")
-    Map<String, Object> result =
-        (Map<String, Object>) ((JavascriptExecutor) rpc.getDriver())
-            .executeAsyncScript(script.toString(), callable, callArguments, raw);
+    String mainWindow = openSideChannel();
+    try {
+      @SuppressWarnings("unchecked")
+      Map<String, Object> result = (Map<String, Object>) ((JavascriptExecutor) rpc.getDriver())
+          .executeAsyncScript(script.toString(), callable, callArguments, raw);
 
-    if (!result.containsKey("result")) {
-      throw new RpcCallException((String) result.get("message"));
+      if (!result.containsKey("result")) {
+        throw new RpcCallException((String) result.get("message"));
+      }
+
+      return result.get("result");
+    } finally {
+      if (mainWindow != null) {
+        rpc.getDriver().switchTo().window(mainWindow);
+      }
     }
 
-    return result.get("result");
+  }
+
+  private String sideWindowHandle;
+
+  private String openSideChannel() {
+    if (sideChannelUrl == null) {
+      return null;
+    }
+
+    WebDriver driver = rpc.getDriver();
+    String currentWindow = driver.getWindowHandle();
+    if (sideWindowHandle != null) {
+      driver.switchTo().window(sideWindowHandle);
+    } else {
+      String sideChannelName = UUID.randomUUID().toString();
+      try {
+        driver.switchTo().window(sideChannelName);
+      } catch (NoSuchWindowException e) {
+        ((JavascriptExecutor) driver).executeScript("open(arguments[0],arguments[1])",
+            sideChannelUrl, sideChannelName);
+          driver.switchTo().window(sideChannelName);
+      }
+      sideWindowHandle = driver.getWindowHandle();
+    }
+    return currentWindow;
+  }
+
+  private void closeSideChannel() {
+    WebDriver driver = rpc.getDriver();
+    String current = rpc.getDriver().getWindowHandle();
+    try {
+      driver.switchTo().window(sideWindowHandle);
+    } catch (NoSuchWindowException e) {
+      return;
+    }
+    sideWindowHandle = null;
+    driver.close();
+    driver.switchTo().window(current);
   }
 
 
@@ -222,6 +282,11 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
 
   @Override
   public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    if (method.getDeclaringClass() == SideChannelSupport.class) {
+      closeSideChannel();
+      return null;
+    }
+
     try {
       Object result = dispatch(method, args);
 
@@ -253,8 +318,8 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
 
 final class HasRpcSupport$SimpleInvocationHandler extends HasRpcSupport$InvocationHandler {
 
-  public HasRpcSupport$SimpleInvocationHandler(HasRpcSupport rpc) {
-    super(rpc);
+  public HasRpcSupport$SimpleInvocationHandler(HasRpcSupport rpc, String sideChannelUrl) {
+    super(rpc, sideChannelUrl);
   }
 
   @Override
@@ -276,15 +341,14 @@ final class HasRpcSupport$SimpleInvocationHandler extends HasRpcSupport$Invocati
 
 }
 
-
 class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler {
 
   private final Class<?>[] interfaces;
   private final String instanceId;
 
   public HasRpcSupport$RmiInvocationHandler(HasRpcSupport rpc, Class<?>[] interfaces,
-      String instanceId) {
-    super(rpc);
+      String instanceId, String sideChannelUrl) {
+    super(rpc, sideChannelUrl);
     this.interfaces = interfaces;
     this.instanceId = instanceId;
   }
@@ -390,7 +454,7 @@ class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler
       @Override
       protected Object resolveObject(Object obj) throws IOException {
         if (obj instanceof RmiRemoteReplacement) {
-          return ((RmiRemoteReplacement) obj).createStub(rpc);
+          return ((RmiRemoteReplacement) obj).createStub(rpc, sideChannelUrl);
         }
         return obj;
       }

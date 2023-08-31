@@ -98,7 +98,7 @@ public abstract class AbstractViewTest extends ParallelTest {
    *
    * @return URL to route
    */
-  private static String getURL(String route) {
+  protected static String getURL(String route) {
     return String.format("http://%s:%d/%s", getDeploymentHostname(), SERVER_PORT, route);
   }
 

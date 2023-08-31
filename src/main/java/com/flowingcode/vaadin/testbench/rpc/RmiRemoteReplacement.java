@@ -45,12 +45,12 @@ final class RmiRemoteReplacement implements Serializable {
         .filter(RmiRemote.class::isAssignableFrom).toArray(Class<?>[]::new);
   }
 
-  Object createStub(@NonNull HasRpcSupport rpc) {
+  Object createStub(@NonNull HasRpcSupport rpc, String sideChannelUrl) {
     Class<?>[] interfaces = this.interfaces;
     interfaces = Arrays.copyOf(interfaces, interfaces.length + 1);
     interfaces[interfaces.length - 1] = RmiStub.class;
 
-    return HasRpcSupport$companion.createCallableProxy(rpc, interfaces, instanceId);
+    return HasRpcSupport$companion.createCallableProxy(rpc, interfaces, instanceId, sideChannelUrl);
   }
 
 }
