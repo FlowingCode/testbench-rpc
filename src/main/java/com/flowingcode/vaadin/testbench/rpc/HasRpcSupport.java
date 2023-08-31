@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,7 +50,7 @@ import org.openqa.selenium.JavascriptExecutor;
 
 /**
  * Provides support for Remote Procedure Calls (RPC) using TestBench.
- * 
+ *
  * @author Javier Godoy / Flowing Code
  */
 public interface HasRpcSupport extends HasDriver {
@@ -79,7 +79,7 @@ public interface HasRpcSupport extends HasDriver {
   @Deprecated
   default Object call(String callable, Object... arguments) {
     try {
-      return HasRpcSupport$InvocationHandler.call(this, callable, arguments);
+      return new HasRpcSupport$SimpleInvocationHandler(this).call(callable, arguments);
     } catch (RpcCallException e) {
       throw new RpcException(callable, arguments, e.getMessage());
     }
@@ -146,7 +146,10 @@ class RpcCallException extends Exception {
 }
 
 
+@RequiredArgsConstructor
 abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
+
+  protected final HasRpcSupport rpc;
 
   /**
    * Call a {@link ClientCallable} defined on the integration view.
@@ -157,7 +160,7 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
    *         {@link HasRpcSupport#setScriptTimeout(long)})
    * @throws RuntimeException if the callable fails.
    */
-  static Object call(HasRpcSupport rpc, String callable, Object... arguments)
+  Object call(String callable, Object... arguments)
       throws RpcCallException {
     arguments = Optional.ofNullable(arguments).orElse(new Object[0]);
     for (int i = 0; i < arguments.length; i++) {
@@ -250,15 +253,13 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
 
 final class HasRpcSupport$SimpleInvocationHandler extends HasRpcSupport$InvocationHandler {
 
-  private final HasRpcSupport rpc;
-
   public HasRpcSupport$SimpleInvocationHandler(HasRpcSupport rpc) {
-    this.rpc = rpc;
+    super(rpc);
   }
 
   @Override
   Object dispatch(Method method, Object[] args) throws RpcCallException {
-    return call(rpc, method.getName(), args);
+    return call(method.getName(), args);
   }
 
   @Override
@@ -278,13 +279,12 @@ final class HasRpcSupport$SimpleInvocationHandler extends HasRpcSupport$Invocati
 
 class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler {
 
-  private final HasRpcSupport rpc;
   private final Class<?>[] interfaces;
   private final String instanceId;
 
   public HasRpcSupport$RmiInvocationHandler(HasRpcSupport rpc, Class<?>[] interfaces,
       String instanceId) {
-    this.rpc = rpc;
+    super(rpc);
     this.interfaces = interfaces;
     this.instanceId = instanceId;
   }
@@ -344,7 +344,7 @@ class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler
       invocation.put(RmiConstants.RMI_METHOD_ARGUMENTS, arguments);
     }
 
-    return call(rpc, RmiCallable.RMI_CALL_METHOD, invocation);
+    return call(RmiCallable.RMI_CALL_METHOD, invocation);
   }
 
   @Override
