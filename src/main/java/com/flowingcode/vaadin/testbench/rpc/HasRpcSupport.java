@@ -411,6 +411,8 @@ class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler
     return call(RmiCallable.RMI_CALL_METHOD, invocation);
   }
 
+  private static final String E_INVOKE_MESSAGE = "An exception was thrown on the server-side";
+
   @Override
   Object convertResult(Object result, Method method, Class<?> returnType)
       throws IOException, ClassCastException, ClassNotFoundException, RpcCallException {
@@ -426,10 +428,11 @@ class HasRpcSupport$RmiInvocationHandler extends HasRpcSupport$InvocationHandler
 
         if (map.containsKey(RmiConstants.RMI_RESPONSE_ERROR)) {
           RmiError err = RmiError.valueOf((String) map.get(RmiConstants.RMI_RESPONSE_ERROR));
+          String msg = err == RmiError.E_INVOKE ? E_INVOKE_MESSAGE : err.name();
           if (err.hasException()) {
-            throw new RpcCallException(err.name(), (Throwable) unmarshal(map));
+            throw new RpcCallException(msg, (Throwable) unmarshal(map));
           } else {
-            throw new RpcCallException(err.name());
+            throw new RpcCallException(msg);
           }
         } else {
           return unmarshal(map);

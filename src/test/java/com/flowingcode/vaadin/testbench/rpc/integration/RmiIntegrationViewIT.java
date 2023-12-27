@@ -66,18 +66,22 @@ public class RmiIntegrationViewIT extends AbstractViewTest implements HasRpcSupp
     };
   }
 
+  private static final String E_INVOKE_MESSAGE = "An exception was thrown on the server-side";
+
   @Test
   public void test02_CallableFailure() {
     // test that the RMI callable mechanism detect failures
     assertThrows(RpcException.class, throwing(() -> $server.testCallableFailure()));
-    assertEquals("testCallableFailure() RPC call failed: E_INVOKE", thrownException.getMessage());
+    assertEquals("testCallableFailure() RPC call failed: " + E_INVOKE_MESSAGE,
+        thrownException.getMessage());
   }
 
   @Test
   public void test02_CallableFailureJsonObject() {
     // test that the RMI callable mechanism detect failures in a method that return JsonObject
     assertThrows(RpcException.class, throwing(() -> $server.testFailureJsonObject()));
-    assertEquals("testFailureJsonObject() RPC call failed: E_INVOKE", thrownException.getMessage());
+    assertEquals("testFailureJsonObject() RPC call failed: " + E_INVOKE_MESSAGE,
+        thrownException.getMessage());
   }
 
   @Test
