@@ -19,7 +19,6 @@
  */
 package com.flowingcode.vaadin.testbench.rpc;
 
-import com.google.common.base.Functions;
 import elemental.json.Json;
 import elemental.json.JsonValue;
 import java.util.Collection;
@@ -74,11 +73,11 @@ public interface JsonArrayList<T> extends JsonValue, Collection<T> {
   }
 
   public static JsonArrayList<Integer> fromIntegers(Iterable<Integer> list) {
-    return createArray(list, Functions.compose(Json::create, Integer::doubleValue));
+    return createArray(list, Json::create, Integer::doubleValue);
   }
 
   public static JsonArrayList<Long> fromLongs(Iterable<Long> list) {
-    return createArray(list, Functions.compose(Json::create, Long::doubleValue));
+    return createArray(list, Json::create, Long::doubleValue);
   }
 
   @Deprecated
@@ -86,6 +85,13 @@ public interface JsonArrayList<T> extends JsonValue, Collection<T> {
   public static <T> JsonArrayList<T> createArray(
       Iterable<T> list, Function<? super T, JsonValue> mapper) {
     return new JreJsonArrayList<>(list, mapper);
+  }
+
+  @Deprecated
+  /** @deprecated. This method should be private. */
+  public static <T, X> JsonArrayList<T> createArray(Iterable<T> list,
+      Function<? super X, JsonValue> mapper, Function<? super T, X> before) {
+    return new JreJsonArrayList<>(list, mapper.compose(before));
   }
 
   public static <T> JsonArrayList<T> wrapForTestbench(List<T> list) {
