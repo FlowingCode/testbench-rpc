@@ -46,13 +46,6 @@
         <developerConnection>scm:git:ssh://git@github.com:/FlowingCode/testbench-rpc.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-
-    <distributionManagement>
-      <repository>
-        <id>ossrh</id>
-        <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-      </repository>
-    </distributionManagement>
     
     <repositories>
         <repository>
