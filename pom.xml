@@ -17,6 +17,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jetty.version>9.4.36.v20210114</jetty.version>
         <drivers.dir>${project.basedir}/drivers</drivers.dir>
+        <com.vaadin.testbench.Parameters.testsInParallel>16</com.vaadin.testbench.Parameters.testsInParallel>
+        <com.vaadin.testbench.Parameters.maxAttempts>8</com.vaadin.testbench.Parameters.maxAttempts>
     </properties>
     
     <organization>
