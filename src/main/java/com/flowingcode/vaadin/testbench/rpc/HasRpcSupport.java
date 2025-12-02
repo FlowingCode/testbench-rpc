@@ -2,7 +2,7 @@
  * #%L
  * RPC for Vaadin TestBench
  * %%
- * Copyright (C) 2021 - 2023 Flowing Code
+ * Copyright (C) 2021 - 2025 Flowing Code
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -46,10 +47,12 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.ClassUtils;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchWindowException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriver.Timeouts;
 
 /**
  * Provides support for Remote Procedure Calls (RPC) using TestBench.
@@ -64,11 +67,19 @@ public interface HasRpcSupport extends HasDriver {
    *
    * @param timeoutMillis The timeout value in milliseconds.
    */
+  @SneakyThrows
   default void setScriptTimeout(long timeoutMillis) {
     if (timeoutMillis < 0) {
       timeoutMillis = (long) 9e15;
     }
-    getDriver().manage().timeouts().setScriptTimeout(timeoutMillis, TimeUnit.MILLISECONDS);
+
+    try {
+      Timeouts.class.getMethod("setScriptTimeout", long.class, TimeUnit.class)
+        .invoke(timeoutMillis, TimeUnit.MILLISECONDS);
+    } catch (NoSuchMethodException e) {
+      Timeouts.class.getMethod("scriptTimeout", Duration.class)
+        .invoke(Duration.ofMillis(timeoutMillis));
+    }
   }
 
   /**
