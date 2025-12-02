@@ -2,7 +2,7 @@
  * #%L
  * RPC for Vaadin TestBench
  * %%
- * Copyright (C) 2021 - 2023 Flowing Code
+ * Copyright (C) 2021 - 2025 Flowing Code
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
  */
 package com.flowingcode.vaadin.testbench.rpc;
 
+import com.flowingcode.vaadin.jsonmigration.JsonCodec;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.internal.JsonCodec;
 import elemental.json.Json;
 import elemental.json.JsonArray;
 import elemental.json.JsonObject;

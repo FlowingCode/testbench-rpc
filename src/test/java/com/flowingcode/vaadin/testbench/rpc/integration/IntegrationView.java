@@ -2,7 +2,7 @@
  * #%L
  * RPC for Vaadin TestBench
  * %%
- * Copyright (C) 2021 - 2023 Flowing Code
+ * Copyright (C) 2021 - 2025 Flowing Code
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,11 @@ package com.flowingcode.vaadin.testbench.rpc.integration;
 import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.HELLO;
 import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.HELLO_WORLD;
 import static com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewConstants.WORLD;
+import com.flowingcode.vaadin.jsonmigration.InstrumentedRoute;
+import com.flowingcode.vaadin.jsonmigration.LegacyClientCallable;
 import com.flowingcode.vaadin.testbench.rpc.JsonArrayList;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.router.Route;
 import elemental.json.Json;
 import elemental.json.JsonArray;
 import elemental.json.JsonBoolean;
@@ -38,7 +39,7 @@ import elemental.json.JsonValue;
 import java.util.Arrays;
 
 @SuppressWarnings("serial")
-@Route(IntegrationView.ROUTE)
+@InstrumentedRoute(IntegrationView.ROUTE)
 public class IntegrationView extends Div implements IntegrationViewCallables {
 
   public static final String ROUTE = "it";
@@ -212,7 +213,7 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
   }
 
   @Override
-  @ClientCallable
+  @LegacyClientCallable
   public String testJsonValue(JsonValue value) {
     if (value != null) {
       return value.getType().name();
@@ -269,7 +270,7 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
   }
 
   @Override
-  @ClientCallable
+  @LegacyClientCallable
   public JsonValue readJsonObject(JsonObject obj, String key) {
     return obj.get(key);
   }

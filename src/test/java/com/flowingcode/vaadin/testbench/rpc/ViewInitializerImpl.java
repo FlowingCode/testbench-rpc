@@ -17,27 +17,22 @@
  * limitations under the License.
  * #L%
  */
-package com.flowingcode.vaadin.testbench.rpc.integration;
+package com.flowingcode.vaadin.testbench.rpc;
 
-import com.flowingcode.vaadin.jsonmigration.InstrumentedRoute;
-import com.flowingcode.vaadin.jsonmigration.LegacyClientCallable;
-import elemental.json.JsonObject;
-import elemental.json.JsonValue;
+import com.flowingcode.vaadin.jsonmigration.InstrumentationViewInitializer;
+import com.flowingcode.vaadin.testbench.rpc.integration.IntegrationView;
+import com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewRmi;
+import com.flowingcode.vaadin.testbench.rpc.integration.RmiIntegrationView;
+import com.vaadin.flow.server.ServiceInitEvent;
 
 @SuppressWarnings("serial")
-@InstrumentedRoute(IntegrationViewRmi.ROUTE)
-public class IntegrationViewRmi extends IntegrationView implements IntegrationViewRmiCallables {
-
-  public static final String ROUTE = "it/rmi2";
-
-  public IntegrationViewRmi() {
-    setId("view");
-  }
+public class ViewInitializerImpl extends InstrumentationViewInitializer {
 
   @Override
-  @LegacyClientCallable
-  public JsonValue $call(JsonObject invocation) {
-    return IntegrationViewRmiCallables.super.$call(invocation);
+  public void serviceInit(ServiceInitEvent event) {
+    registerInstrumentedRoute(IntegrationView.class);
+    registerInstrumentedRoute(IntegrationViewRmi.class);
+    registerInstrumentedRoute(RmiIntegrationView.class);
   }
 
 }

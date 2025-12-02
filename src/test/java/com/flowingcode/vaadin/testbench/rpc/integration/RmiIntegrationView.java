@@ -2,7 +2,7 @@
  * #%L
  * RPC for Vaadin TestBench
  * %%
- * Copyright (C) 2021 - 2023 Flowing Code
+ * Copyright (C) 2021 - 2025 Flowing Code
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@
  */
 package com.flowingcode.vaadin.testbench.rpc.integration;
 
+import com.flowingcode.vaadin.jsonmigration.InstrumentedRoute;
+import com.flowingcode.vaadin.jsonmigration.LegacyClientCallable;
 import com.flowingcode.vaadin.testbench.rpc.RmiRemote;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.router.Route;
 import elemental.json.Json;
 import elemental.json.JsonObject;
 import elemental.json.JsonValue;
@@ -36,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 @SuppressWarnings("serial")
-@Route(RmiIntegrationView.ROUTE)
+@InstrumentedRoute(RmiIntegrationView.ROUTE)
 public class RmiIntegrationView extends Div implements RmiIntegrationViewCallables {
 
   public static final String ROUTE = "it/rmi";
@@ -63,7 +64,7 @@ public class RmiIntegrationView extends Div implements RmiIntegrationViewCallabl
   }
 
   @Override
-  @ClientCallable
+  @LegacyClientCallable
   public JsonValue $call(JsonObject invocation) {
     return RmiIntegrationViewCallables.super.$call(invocation);
   }
