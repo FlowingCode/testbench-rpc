@@ -2,7 +2,7 @@
  * #%L
  * RPC for Vaadin TestBench
  * %%
- * Copyright (C) 2021 - 2023 Flowing Code
+ * Copyright (C) 2021 - 2025 Flowing Code
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,6 +84,10 @@ public interface IntegrationViewCallables extends SideChannelSupport {
   JsonArray returnJsonArray();
 
   String testJsonValue(JsonValue value);
+
+  int testStringArray(int dummy, String[] value);
+
+  int testStringVarArgs(int dummy, String... value);
 
   enum TestEnum {
     FOO, BAR
