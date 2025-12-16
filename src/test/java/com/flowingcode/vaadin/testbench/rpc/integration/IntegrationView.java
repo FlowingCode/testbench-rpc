@@ -280,4 +280,17 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
   public boolean isPrototypeOf(String string) {
     return true;
   }
+
+  @Override
+  @ClientCallable
+  public int testStringArray(int dummy, String[] value) {
+    return value.length;
+  }
+
+  @Override
+  @ClientCallable
+  public int testStringVarArgs(int dummy, String... value) {
+    return value.length;
+  }
+
 }

@@ -2,7 +2,7 @@
  * #%L
  * RPC for Vaadin TestBench
  * %%
- * Copyright (C) 2021 - 2023 Flowing Code
+ * Copyright (C) 2021 - 2025 Flowing Code
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,10 +142,18 @@ class TypeConversion {
         || JsonValue.class.isAssignableFrom(type);
   }
 
+  private boolean isValidArgumentType(Class<?> type) {
+    if (type.isArray()) {
+      return isValidRmiType(type.getComponentType());
+    } else {
+      return type.isEnum() || isValidType(type);
+    }
+  }
+
   private static void checkMethod(Method method) {
 
     for (Class<?> type : method.getParameterTypes()) {
-      if (!type.isEnum() && !isValidType(type)) {
+      if (!isValidArgumentType(type)) {
         throw new IllegalRpcSignatureException(String
             .format("Argument of type %s is not supported by TestBench-RPC.", type.getName()));
       }

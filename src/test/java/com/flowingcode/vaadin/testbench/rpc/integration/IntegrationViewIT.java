@@ -2,7 +2,7 @@
  * #%L
  * RPC for Vaadin TestBench
  * %%
- * Copyright (C) 2021 - 2023 Flowing Code
+ * Copyright (C) 2021 - 2025 Flowing Code
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -324,4 +324,19 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
     JsonObject result = (JsonObject) $server.returnJsonValueJsonObject("key", HELLO);
     assertEquals(HELLO, result.getString("key"));
   }
+
+  @Test
+  public void test14_testStringArray() {
+    String[] array = new String[] {HELLO, WORLD};
+    int result = $server.testStringArray(0, array);
+    assertEquals(array.length, result);
+  }
+
+  @Test
+  public void test14_testStringVarArgsArray() {
+    String[] array = new String[] {HELLO, WORLD};
+    int result = $server.testStringVarArgs(0, array);
+    assertEquals(array.length, result);
+  }
+
 }

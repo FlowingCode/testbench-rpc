@@ -120,7 +120,7 @@ public class SampleIT extends AbstractViewTest implements HasRpcSupport {
 
 ### Argument and return types
 
-Types `boolean`, `int`, `double`, their boxed types (`Boolean`, `Integer` and `Double`), `String` and `JsonValue` are supported as both argument and return types in `@ClientCallable` methods. Enumeration types are supported as arguments, but not as return types.
+Types `boolean`, `int`, `double`, their boxed types (`Boolean`, `Integer` and `Double`), `String` and `JsonValue` are supported as both argument and return types in `@ClientCallable` methods. Enumeration types and arrays of supported types are supported as arguments, but not as return types.
 
 **Returning Lists** The return type of a `@ClientCallable` method can be declared as `JsonArrayList<T>` (where the element type `T` is a supported return type, or `Long`).
 In TestBench side, the `JsonArrayList` will implement `Collection<T>`, which facilitates asserting its value (for instance, with hamcrest matchers).
