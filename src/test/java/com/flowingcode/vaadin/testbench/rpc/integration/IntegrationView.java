@@ -294,6 +294,12 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
   }
 
   @Override
+  @LegacyClientCallable
+  public int testJsonValueArray(int dummy, JsonValue[] value) {
+    return value.length;
+  }
+
+  @Override
   @ClientCallable
   public int testEnumArray(int dummy, TestEnum[] value) {
     return value.length;
