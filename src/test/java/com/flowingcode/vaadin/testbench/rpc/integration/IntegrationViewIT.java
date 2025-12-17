@@ -346,4 +346,22 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
     assertEquals(2, result);
   }
 
+  @Test
+  public void test14_JsonValueArray() {
+    JsonValue[] array = new JsonValue[] {
+        Json.create(HELLO_WORLD),
+        Json.create(42),
+        Json.create(false),
+        Json.createArray()};
+    int result = $server.testJsonValueArray(0, array);
+    assertEquals(array.length, result);
+  }
+
+  @Test
+  public void test14_JsonStringArray() {
+    JsonString[] array = new JsonString[] {Json.create(HELLO), Json.create(WORLD)};
+    int result = $server.testJsonValueArray(0, array);
+    assertEquals(array.length, result);
+  }
+
 }
