@@ -293,4 +293,10 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
     return value.length;
   }
 
+  @Override
+  @ClientCallable
+  public int testEnumArray(int dummy, TestEnum[] value) {
+    return value.length;
+  }
+
 }

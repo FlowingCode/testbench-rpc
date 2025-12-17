@@ -339,4 +339,11 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
     assertEquals(array.length, result);
   }
 
+  @Test
+  public void test14_testEnumArray() {
+    TestEnum[] array = new TestEnum[] {TestEnum.FOO, TestEnum.BAR};
+    int result = $server.testEnumArray(0, array);
+    assertEquals(2, result);
+  }
+
 }

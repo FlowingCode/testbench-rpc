@@ -89,6 +89,8 @@ public interface IntegrationViewCallables extends SideChannelSupport {
 
   int testStringVarArgs(int dummy, String... value);
 
+  int testEnumArray(int dummy, TestEnum[] value);
+
   enum TestEnum {
     FOO, BAR
   }
