@@ -353,15 +353,21 @@ public class IntegrationViewIT extends AbstractViewTest implements HasRpcSupport
         Json.create(42),
         Json.create(false),
         Json.createArray()};
-    int result = $server.testJsonValueArray(0, array);
-    assertEquals(array.length, result);
+    JsonValue[] result = $server.testJsonValueArray(0, array).toArray(JsonValue[]::new);
+    assertThat(result, Matchers.arrayWithSize(array.length));
+    for (int i = 0; i < array.length; i++) {
+      assertTrue("at index " + i, array[i].jsEquals(result[i]));
+    }
   }
 
   @Test
   public void test14_JsonStringArray() {
     JsonString[] array = new JsonString[] {Json.create(HELLO), Json.create(WORLD)};
-    int result = $server.testJsonValueArray(0, array);
-    assertEquals(array.length, result);
+    JsonString[] result = $server.testJsonValueArray(0, array).toArray(JsonString[]::new);
+    assertThat(result, Matchers.arrayWithSize(array.length));
+    for (int i = 0; i < array.length; i++) {
+      assertTrue("at index " + i, array[i].jsEquals(result[i]));
+    }
   }
 
 }
