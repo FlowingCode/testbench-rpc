@@ -37,6 +37,7 @@ import elemental.json.JsonString;
 import elemental.json.JsonType;
 import elemental.json.JsonValue;
 import java.util.Arrays;
+import java.util.function.Function;
 
 @SuppressWarnings("serial")
 @InstrumentedRoute(IntegrationView.ROUTE)
@@ -295,8 +296,8 @@ public class IntegrationView extends Div implements IntegrationViewCallables {
 
   @Override
   @LegacyClientCallable
-  public int testJsonValueArray(int dummy, JsonValue[] value) {
-    return value.length;
+  public JsonArrayList<JsonValue> testJsonValueArray(int index, JsonValue[] value) {
+    return JsonArrayList.createArray(Arrays.asList(value), Function.identity());
   }
 
   @Override

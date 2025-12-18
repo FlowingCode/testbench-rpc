@@ -89,7 +89,7 @@ public interface IntegrationViewCallables extends SideChannelSupport {
 
   int testStringVarArgs(int dummy, String... value);
 
-  int testJsonValueArray(int dummy, JsonValue[] value);
+  JsonArrayList<JsonValue> testJsonValueArray(int dummy, JsonValue[] value);
 
   int testEnumArray(int dummy, TestEnum[] value);
 
