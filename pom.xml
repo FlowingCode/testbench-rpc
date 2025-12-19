@@ -4,7 +4,7 @@
 
     <groupId>com.flowingcode.vaadin.test</groupId>
     <artifactId>testbench-rpc</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1-SNAPSHOT</version>
     <name>TestBenchRPC</name>
     <description>Remote procedure calls for Vaadin TestBench</description>
     <url>https://www.flowingcode.com/en/open-source/</url>
@@ -46,7 +46,7 @@
         <url>https://github.com/FlowingCode/testbench-rpc</url>
         <connection>scm:git:git://github.com/FlowingCode/testbench-rpc.git</connection>
         <developerConnection>scm:git:ssh://git@github.com:/FlowingCode/testbench-rpc.git</developerConnection>
-        <tag>testbench-rpc-1.4.0</tag>
+        <tag>HEAD</tag>
     </scm>
     
     <repositories>
