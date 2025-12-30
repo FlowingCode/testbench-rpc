@@ -23,6 +23,7 @@ import com.flowingcode.vaadin.jsonmigration.InstrumentationViewInitializer;
 import com.flowingcode.vaadin.testbench.rpc.integration.IntegrationView;
 import com.flowingcode.vaadin.testbench.rpc.integration.IntegrationViewRmi;
 import com.flowingcode.vaadin.testbench.rpc.integration.RmiIntegrationView;
+import com.flowingcode.vaadin.testbench.rpc.integration.VersionView;
 import com.vaadin.flow.server.ServiceInitEvent;
 
 @SuppressWarnings("serial")
@@ -33,6 +34,7 @@ public class ViewInitializerImpl extends InstrumentationViewInitializer {
     registerInstrumentedRoute(IntegrationView.class);
     registerInstrumentedRoute(IntegrationViewRmi.class);
     registerInstrumentedRoute(RmiIntegrationView.class);
+    registerInstrumentedRoute(VersionView.class);
   }
 
 }
