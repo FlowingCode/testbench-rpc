@@ -86,6 +86,7 @@ public abstract class AbstractViewTest extends ParallelTest {
   public void setup() throws Exception {
     setDriver(TestBench.createDriver(new ChromeDriver()));
     getDriver().get(getURL(route));
+    getCommandExecutor().waitForVaadin();
   }
 
   @After
