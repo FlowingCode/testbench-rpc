@@ -195,11 +195,13 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
       } else if (arguments[i] instanceof JsonValue) {
         arguments[i] = TypeConversion.fromJsonValue((JsonValue) arguments[i]);
       } else if (arguments[i] instanceof Enum[]) {
-        arguments[i] = Stream.of((Enum[]) arguments[i]).map(Enum::name).toList();
+        arguments[i] = Stream.of((Enum[]) arguments[i])
+            .map(Enum::name)
+            .collect(Collectors.toList());
       } else if (arguments[i] instanceof JsonValue[]) {
         arguments[i] = Stream.of((JsonValue[])arguments[i])
             .map(TypeConversion::fromJsonValue)
-            .toList();
+            .collect(Collectors.toList());
       }
     }
 
