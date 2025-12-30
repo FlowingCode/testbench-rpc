@@ -53,6 +53,8 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchWindowException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriver.Timeouts;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 /**
  * Provides support for Remote Procedure Calls (RPC) using TestBench.
@@ -270,13 +272,12 @@ abstract class HasRpcSupport$InvocationHandler implements InvocationHandler {
       driver.switchTo().window(sideWindowHandle);
     } else {
       String sideChannelName = UUID.randomUUID().toString();
-      try {
-        driver.switchTo().window(sideChannelName);
-      } catch (NoSuchWindowException e) {
-        ((JavascriptExecutor) driver).executeScript("open(arguments[0],arguments[1])",
-            sideChannelUrl, sideChannelName);
-          driver.switchTo().window(sideChannelName);
-      }
+      int numberOfWindows = driver.getWindowHandles().size();
+      ((JavascriptExecutor) driver).executeScript("open(arguments[0],arguments[1])", sideChannelUrl,
+          sideChannelName);
+      WebDriverWait wait = new WebDriverWait(driver, 2, 100);
+      wait.until(ExpectedConditions.numberOfWindowsToBe(numberOfWindows + 1));
+      driver.switchTo().window(sideChannelName);
       sideWindowHandle = driver.getWindowHandle();
     }
     return currentWindow;
