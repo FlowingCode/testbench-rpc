@@ -33,6 +33,8 @@ Add the following dependency in your pom.xml file:
 </repository>
 ```
 
+Versions 1.4.0 and 1.5.0 are available from Maven Central and do not require the repository above.
+
 For SNAPSHOT versions see [here](https://maven.flowingcode.com/snapshots/).
 
 ## Building and running demo
